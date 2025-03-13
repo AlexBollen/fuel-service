@@ -9,7 +9,7 @@ import { configurationMongo } from './configuration/configuration-mongo';
   imports: [
     ConfigModule.forRoot({
       load: [configurationMongo],
-      envFilePath: `./env/${process.env.NODE_ENV}.env`, //archivo para variables de entorno
+      envFilePath: `.env`, //archivo para variables de entorno
       isGlobal: true,
     }),
     MongooseModule.forRootAsync({
