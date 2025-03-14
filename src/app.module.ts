@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configurationMongo } from './configuration/configuration-mongo';
 import { FuelTypesModule } from './fuel-types/fuel-types.module';
+import { GeneralDepositModule } from './general-deposit/general-deposit.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { FuelTypesModule } from './fuel-types/fuel-types.module';
       inject: [ConfigService],
     }),
     FuelTypesModule,
+    GeneralDepositModule,
   ],
   controllers: [AppController],
   providers: [AppService],
