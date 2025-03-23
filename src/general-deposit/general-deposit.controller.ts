@@ -1,35 +1,34 @@
-import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { GeneralDepositService } from './general-deposit.service';
 import { CreateGeneralDepositDto } from './dto/create-general-deposit.dto';
 import { UpdateGeneralDepositDto } from './dto/update-general-deposit.dto';
 
-@Controller()
+@Controller('general-deposit')
 export class GeneralDepositController {
   constructor(private readonly generalDepositService: GeneralDepositService) {}
 
-  @MessagePattern('createGeneralDeposit')
-  create(@Payload() createGeneralDepositDto: CreateGeneralDepositDto) {
+  @Post()
+  create(@Body() createGeneralDepositDto: CreateGeneralDepositDto) {
     return this.generalDepositService.create(createGeneralDepositDto);
   }
 
-  @MessagePattern('findAllGeneralDeposit')
+  @Get()
   findAll() {
     return this.generalDepositService.findAll();
   }
 
-  @MessagePattern('findOneGeneralDeposit')
-  findOne(@Payload() id: number) {
-    return this.generalDepositService.findOne(id);
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.generalDepositService.findOne(+id);
   }
 
-  @MessagePattern('updateGeneralDeposit')
-  update(@Payload() updateGeneralDepositDto: UpdateGeneralDepositDto) {
-    return this.generalDepositService.update(updateGeneralDepositDto.id, updateGeneralDepositDto);
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateGeneralDepositDto: UpdateGeneralDepositDto) {
+    return this.generalDepositService.update(+id, updateGeneralDepositDto);
   }
 
-  @MessagePattern('removeGeneralDeposit')
-  remove(@Payload() id: number) {
-    return this.generalDepositService.remove(id);
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.generalDepositService.remove(+id);
   }
 }
