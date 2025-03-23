@@ -8,6 +8,7 @@ import { FuelTypesModule } from './fuel-types/fuel-types.module';
 import { GeneralDepositModule } from './general-deposit/general-deposit.module';
 import { SaleModule } from './sale/sale.module';
 import { BombModule } from './bomb/bomb.module';
+import { AlertModule } from './alert/alert.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { BombModule } from './bomb/bomb.module';
     GeneralDepositModule,
     SaleModule,
     BombModule,
+    AlertModule,
   ],
   controllers: [AppController],
   providers: [AppService],
