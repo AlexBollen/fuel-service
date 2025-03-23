@@ -1,50 +1,31 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
+import { EmployeeEmbedded } from 'src/sale/schemas/employee.schema';
 
-@Schema()
-class Employee {
-  @Prop({ type: String, required: true })
-  employeeId: string;
-
-  @Prop({ type: String, required: true })
-  employeeName: string;
-}
-
-@Schema()
-class EmployeeInCharge{
-    @Prop({type: String, required: true})
-    employeeId: String;
-
-    @Prop({ type: String, required: true })
-    employeeName: string;
-}
+export type BombDocument = HydratedDocument<Bomb>;
 
 @Schema({ timestamps: true })
-export class bomb{
-    @Prop({ type: String, required: true })
-    bombId: string;
+export class Bomb {
+  @Prop({ type: String, required: true })
+  bombId: string;
 
-    @Prop({ type: Number, required: true })
-    bombNumber: number;
+  @Prop({ type: Number, required: true })
+  bombNumber: number;
 
-    @Prop({ type: Types.Decimal128, required: true})
-    servedQuantity: Types.Decimal128;
+  @Prop({ type: Types.Decimal128, required: true })
+  servedQuantity: Types.Decimal128;
 
-    @Prop({type : EmployeeInCharge, required: true })
-    employeeInCharge: EmployeeInCharge
+  @Prop({ type: EmployeeEmbedded, required: true })
+  employeeInCharge: EmployeeEmbedded;
 
-    @Prop({ type: Date, required: true })
-    createdAt: Date;
-   
-    @Prop({ type: Employee, required: true })
-    createdBy: Employee;
-    
-    @Prop({ type: Date, required: false })
-    updatedAt?: Date;
-    
-    @Prop({ type: Employee, required: false })
-    updatedBy?: Employee;
-    
-    @Prop({ type: Number, required: true })
-    state: number;
+  @Prop({ type: EmployeeEmbedded, required: true })
+  createdBy: EmployeeEmbedded;
+
+  @Prop({ type: EmployeeEmbedded, required: false })
+  updatedBy?: EmployeeEmbedded;
+
+  @Prop({ type: Number, required: true })
+  status: number;
 }
+
+export const BombSchema = SchemaFactory.createForClass(Bomb);

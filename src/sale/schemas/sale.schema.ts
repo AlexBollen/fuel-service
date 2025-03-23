@@ -1,74 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
+import { CustomerEmbedded } from './customer.schema';
+import { BombEmbedded } from './bomb.schema';
+import { FuelEmbedded } from './fuel.schema';
+import { PaymentMethodEmbedded } from './payment-method.schema';
+import { FidelityCardEmbedded } from './fidelity-card.schema';
+import { EmployeeEmbedded } from './employee.schema';
 
-@Schema()
-class Customer {
-  @Prop({ type: String, required: true })
-  customerId: string;
+// HydratedDocument le da funciones y métodos adicionales a Sale como .save() y .populate()
+// También permite usar el SaleDocuement en otras partes del código para tener autocompletado y validaciones de TypeScript.
+export type SaleDocument = HydratedDocument<Sale>;
 
-  @Prop({ type: String, required: true })
-  customerName: string;
-
-  @Prop({ type: String, required: true })
-  nit: string;
-}
-
-@Schema()
-class Bomb {
-  @Prop({ type: String, required: true })
-  bombId: string;
-
-  @Prop({ type: Number, required: true })
-  bombNumber: number;
-}
-
-@Schema()
-class Fuel {
-  @Prop({ type: String, required: true })
-  fuelId: string;
-
-  @Prop({ type: String, required: true })
-  fuelName: string;
-
-  @Prop({ type: Types.Decimal128, required: true })
-  salePriceGalon: Types.Decimal128;
-}
-
-@Schema()
-class PaymentMethod {
-  @Prop({ type: String, required: true })
-  paymentId: string;
-
-  @Prop({ type: String, required: true })
-  methood: string;
-
-  @Prop({ type: Types.Decimal128, required: true })
-  amount: Types.Decimal128;
-}
-
-@Schema()
-class FidelityCard {
-  @Prop({ type: String, required: true })
-  fidelityCardId: string;
-
-  @Prop({ type: Types.Decimal128, required: true })
-  earnedPoints: Types.Decimal128;
-
-  @Prop({ type: Types.Decimal128, required: true })
-  lostPoints: Types.Decimal128;
-}
-
-@Schema()
-class Employee {
-  @Prop({ type: String, required: true })
-  employeeId: string;
-
-  @Prop({ type: String, required: true })
-  employeeName: string;
-}
-
-@Schema({ timestamps: true }) //Timestamps true para que se maneje automáticamente el createdAt y updatedAt
-export class FuelSale {
+@Schema({ timestamps: true })
+export class Sale {
   @Prop({ type: String, required: true })
   fuelSaleId: string;
 
@@ -78,40 +22,30 @@ export class FuelSale {
   @Prop({ type: Types.Decimal128, required: true })
   consumedQuantity: Types.Decimal128;
 
-  @Prop({ type: Customer, required: true })
-  customer: Customer;
+  @Prop({ type: CustomerEmbedded, required: true })
+  customer: CustomerEmbedded;
 
-  @Prop({ type: Bomb, required: true })
-  bomb: Bomb;
+  @Prop({ type: BombEmbedded, required: true })
+  bomb: BombEmbedded;
 
-  @Prop({ type: Fuel, required: true })
-  fuel: Fuel;
+  @Prop({ type: FuelEmbedded, required: true })
+  fuel: FuelEmbedded;
 
-  @Prop({ type: [PaymentMethod], required: true })
-  paymentMethods: PaymentMethod[];
+  @Prop({ type: [PaymentMethodEmbedded], required: true })
+  paymentMethods: PaymentMethodEmbedded[];
 
-  @Prop({ type: FidelityCard, required: false })
-  fidelityCard?: FidelityCard;
+  @Prop({ type: FidelityCardEmbedded, required: false })
+  fidelityCard?: FidelityCardEmbedded;
 
-  @Prop({ type: Date, required: true })
-  createdAt: Date;
+  @Prop({ type: EmployeeEmbedded, required: true })
+  createdBy: EmployeeEmbedded;
 
-  @Prop({ type: Employee, required: true })
-  createdBy: Employee;
-
-  @Prop({ type: Date, required: false })
-  updatedAt?: Date;
-
-  @Prop({ type: Employee, required: false })
-  updatedBy?: Employee;
+  @Prop({ type: EmployeeEmbedded, required: false })
+  updatedBy?: EmployeeEmbedded;
 
   @Prop({ type: Number, required: true })
-  state: number;
+  status: number;
 }
 
-//HydratedDocument le da funciones y métodos adicionales a FuelSale como .save() y .populate()
-//También permite usar el FuelSaleDocuement en otras partes del código para tener autocompletado y validaciones de TypeScript.
-export type FuelSaleDocument = HydratedDocument<FuelSale>;
-
-//Genera el esquema automáticamente y ya no se tiene que definir manualmente (new mongoose.Schema({...}))
-export const FuelSaleSchema = SchemaFactory.createForClass(FuelSale);
+// Genera el esquema automáticamente y ya no se tiene que definir manualmente
+export const SaleSchema = SchemaFactory.createForClass(Sale);

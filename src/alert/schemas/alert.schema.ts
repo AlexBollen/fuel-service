@@ -1,13 +1,8 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument } from 'mongoose';
+import { EmployeeEmbedded } from 'src/sale/schemas/employee.schema';
 
-@Schema()
-class Employee {
-  @Prop({ type: String, required: true })
-  employeeId: string;
-
-  @Prop({ type: String, required: true })
-  employeeName: string;
-}
+export type AlertDocumnet = HydratedDocument<Alert>;
 
 @Schema({ timestamps: true })
 export class Alert {
@@ -20,12 +15,11 @@ export class Alert {
   @Prop({ type: String, required: true })
   destination: string;
 
-  @Prop({ type: Date, required: true })
-  createdAt: Date;
-
-  @Prop({ type: Employee, required: true })
-  createdBy: Employee;
+  @Prop({ type: EmployeeEmbedded, required: true })
+  createdBy: EmployeeEmbedded;
 
   @Prop({ type: Number, required: true })
-  state: number;
+  status: number;
 }
+
+export const AlertSchema = SchemaFactory.createForClass(Alert);
