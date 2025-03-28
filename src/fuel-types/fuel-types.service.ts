@@ -1,26 +1,60 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateFuelTypeDto } from './dto/create-fuel-type.dto';
-import { UpdateFuelTypeDto } from './dto/update-fuel-type.dto';
+import { FuelType, FuelTypeDocument } from './schemas/fuel-type.schema';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class FuelTypesService {
-  create(createFuelTypeDto: CreateFuelTypeDto) {
-    return 'This action adds a new fuelType';
+  constructor(
+    @InjectModel(FuelType.name) private fuelTypeModel: Model<FuelTypeDocument>,
+  ) {}
+
+  async create(createFuelTypeDto: CreateFuelTypeDto): Promise<FuelType> {
+    const newFuelType = new this.fuelTypeModel({
+      ...createFuelTypeDto,
+      fuelId: uuidv4(),
+    });
+    return newFuelType.save();
   }
 
-  findAll() {
-    return `This action returns all fuelTypes`;
+  async findAll(): Promise<FuelType[]> {
+    return this.fuelTypeModel.find({ status: true }).exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} fuelType`;
+  async findOne(id: string): Promise<FuelType> {
+    const fuelType = await this.fuelTypeModel.findOne({ fuelId: id }).exec();
+    if (!fuelType) {
+      throw new NotFoundException(`FuelType con ID "${id}" no encontrado.`);
+    }
+    return fuelType;
   }
 
-  update(id: number, updateFuelTypeDto: UpdateFuelTypeDto) {
-    return `This action updates a #${id} fuelType`;
+  async update(
+    id: string,
+    updateFuelTypeDto: Partial<CreateFuelTypeDto>,
+  ): Promise<FuelType> {
+    const updatedFuelType = await this.fuelTypeModel
+      .findOneAndUpdate({ fuelId: id }, updateFuelTypeDto, { new: true })
+      .exec();
+
+    if (!updatedFuelType) {
+      throw new NotFoundException(`FuelType con ID "${id}" no encontrado.`);
+    }
+
+    return updatedFuelType;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} fuelType`;
+  async remove(id: string): Promise<FuelType> {
+    const updatedFuelType = await this.fuelTypeModel
+      .findOneAndUpdate({ fuelId: id }, { status: false }, { new: true })
+      .exec();
+
+    if (!updatedFuelType) {
+      throw new NotFoundException(`FuelType con ID "${id}" no encontrado.`);
+    }
+
+    return updatedFuelType;
   }
 }
