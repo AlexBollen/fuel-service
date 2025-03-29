@@ -41,13 +41,27 @@ export class SaleService {
     })
     .exec();
 
-  if (!sale)
-    throw new NotFoundException(`Venta con ID ${saleId} no encontrada.`);
-  return sale;
+    if (!sale)
+      throw new NotFoundException(`Venta con ID ${saleId} no encontrada.`);
+    return sale;
   }
 
-  async update(idSale: string, updateSaleDto: UpdateSaleDto) {
-    return this.saleModel.findByIdAndUpdate(idSale, updateSaleDto, { new: true }).exec();
+  async update(saleId: string, updateSaleDto: UpdateSaleDto): Promise<Sale> {
+    
+    const sale = await this.saleModel.findOne({ saleId }).exec();
+
+   
+    if (!sale) {
+      throw new NotFoundException(`Venta con ID ${saleId} no encontrada.`);
+    }
+
+    return this.saleModel
+      .findOneAndUpdate(
+          { saleId }, 
+          { ...updateSaleDto }, 
+          { new: true } 
+        )
+        .exec();
   }
 
   async remove(saleId: string) {

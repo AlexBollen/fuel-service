@@ -70,6 +70,7 @@ export class SaleController {
     name: 'saleId',
     description: 'ID de la venta a editar',
   })
+ 
   @ApiResponse({
     status: 200,
     description: 'Venta editada correctamente',
@@ -79,8 +80,8 @@ export class SaleController {
     status: 404,
     description: 'Venta no encontrada',
   })
-  update(@Param('id') id: string, @Body() updateSaleDto: UpdateSaleDto) {
-    return this.saleService.update(+id, updateSaleDto);
+  update(@Param('saleId') saleId: string, @Body() updateSaleDto: UpdateSaleDto): Promise<Sale> {
+    return this.saleService.update(saleId, updateSaleDto);
   }
 
   @Delete('/delete/:saleId')

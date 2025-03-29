@@ -118,8 +118,9 @@ export class CreateSaleDto {
       })
     @ValidateNested() 
     @IsObject()
+    @IsOptional()
     @Type(() => FidelityCardEmbeddedDto) 
-    fidelityCard: FidelityCardEmbeddedDto
+    fidelityCard?: FidelityCardEmbeddedDto
 
     @ApiProperty({
         type: EmployeeEmbeddedDto,
