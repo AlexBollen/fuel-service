@@ -1,26 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAlertDto } from './dto/create-alert.dto';
-import { UpdateAlertDto } from './dto/update-alert.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Alert, AlertDocumnet } from './schemas/alert.schema';
+import { Model } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AlertService {
-  create(createAlertDto: CreateAlertDto) {
-    return 'This action adds a new alert';
+  constructor(
+    @InjectModel(Alert.name) private alertModel: Model<AlertDocumnet>,
+  ) {}
+
+  async create(createAlertDto: CreateAlertDto): Promise<Alert> {
+    const newAlert = new this.alertModel({
+      ...createAlertDto,
+      alertId: uuidv4(),
+    });
+    return await newAlert.save();
   }
 
-  findAll() {
-    return `This action returns all alert`;
+  async findAll(): Promise<Alert[]> {
+    return await this.alertModel.find({ status: true }).exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} alert`;
+  async findOne(alertId: string): Promise<Alert> {
+    const alert = await this.alertModel
+      .findOne({
+        alertId: alertId,
+      })
+      .exec();
+
+    if (!alert)
+      throw new NotFoundException(`Alerta con ID ${alertId} no encontrada.`);
+    return alert;
   }
 
-  update(id: number, updateAlertDto: UpdateAlertDto) {
-    return `This action updates a #${id} alert`;
-  }
+  async remove(alertId: string): Promise<String> {
+    const alert = await this.alertModel
+      .findByIdAndUpdate({ alertId: alertId }, { status: false }, { new: true })
+      .exec();
 
-  remove(id: number) {
-    return `This action removes a #${id} alert`;
+    if (!alert)
+      throw new NotFoundException(`Alerta con ID ${alertId} no encontrada.`);
+    return `Alerta con ID ${alertId} eliminada correctamente`;
   }
 }
