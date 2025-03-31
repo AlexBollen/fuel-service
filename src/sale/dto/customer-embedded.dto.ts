@@ -1,9 +1,6 @@
-import { IsString, IsInt, Min, IsPositive, ValidateNested, IsArray, IsNumber, isDecimal, IsDecimal, IsObject, isArray, IsOptional } from 'class-validator';
-import { Type } from 'class-transformer';
-import { Types } from 'mongoose';
+import { IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { PaymentMethodDto } from './paymenth-method-embedded.dto';
-import { EmployeeEmbeddedDto } from './employee-embedded.dto';
+
 
 export class CustomerEmbeddedDto{
 

@@ -1,4 +1,4 @@
-import { IsString, IsInt, Min, IsPositive, ValidateNested, IsArray, IsNumber, isDecimal, IsDecimal, IsObject, isArray, IsOptional } from 'class-validator';
+import { ValidateNested } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateSaleDto } from './create-sale.dto';
 import { EmployeeEmbeddedDto } from './employee-embedded.dto';

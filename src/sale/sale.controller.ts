@@ -39,13 +39,13 @@ export class SaleController {
     return this.saleService.findAll();
   }
 
-  @Get('/list/:saleId')
+  @Get('/list/:fuelSaleId')
   @ApiOperation({
     summary: 'Obtener venta por ID',
     description: 'Este endpoint devuelve una venta específica',
   })
   @ApiParam({
-    name: 'saleId',
+    name: 'fuelSaleId',
     description: 'ID de la venta a encontrar',
   })
   @ApiResponse({
@@ -57,8 +57,8 @@ export class SaleController {
     status: 404,
     description: 'Venta no encontrada',
   })
-  findOne(@Param('saleId') saleId: string): Promise<Sale> {
-    return this.saleService.findOne(saleId);
+  findOne(@Param('fuelSaleId') fuelSaleId: string): Promise<Sale> {
+    return this.saleService.findOne(fuelSaleId);
   }
 
   @Patch('/update')
@@ -67,7 +67,7 @@ export class SaleController {
     description: 'Este endpoint edita una venta específica',
   })
   @ApiParam({
-    name: 'saleId',
+    name: 'fuelSaleId',
     description: 'ID de la venta a editar',
   })
  
@@ -80,17 +80,17 @@ export class SaleController {
     status: 404,
     description: 'Venta no encontrada',
   })
-  update(@Param('saleId') saleId: string, @Body() updateSaleDto: UpdateSaleDto): Promise<Sale> {
-    return this.saleService.update(saleId, updateSaleDto);
+  update(@Param('fuelSaleId') fuelSaleId: string, @Body() updateSaleDto: UpdateSaleDto): Promise<Sale> {
+    return this.saleService.update(fuelSaleId, updateSaleDto);
   }
 
-  @Delete('/delete/:saleId')
+  @Delete('/delete/:fuelSaleId')
   @ApiOperation({
     summary: 'Eliminar una venta',
     description: 'Este endpoint elimina lógicamente una venta específica',
   })
   @ApiParam({
-    name: 'saleId',
+    name: 'fuelSaleId',
     description: 'ID de la venta a eliminar',
   })
   @ApiResponse({
@@ -102,7 +102,7 @@ export class SaleController {
     status: 404,
     description: 'Venta no encontrada',
   })
-  remove(@Param('saleId') saleId: string) {
-    return this.saleService.remove(saleId);
+  remove(@Param('fuelSaleId') fuelSaleId: string) {
+    return this.saleService.remove(fuelSaleId);
   }
 }

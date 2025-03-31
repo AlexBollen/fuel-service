@@ -1,5 +1,4 @@
-import { IsString, IsInt, Min, IsPositive, ValidateNested, IsArray, IsNumber, isDecimal, IsDecimal, IsObject, isArray, IsOptional, isNumber, min } from 'class-validator';
-import { Types } from 'mongoose';
+import { IsString,  Min, IsNumber} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 

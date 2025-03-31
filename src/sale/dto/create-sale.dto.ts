@@ -1,4 +1,4 @@
-import { IsString, IsInt, Min, IsPositive, ValidateNested, IsArray, IsNumber, isDecimal, IsDecimal, IsObject, isArray, IsOptional } from 'class-validator';
+import { IsString, IsInt, Min, IsPositive, ValidateNested, IsArray, IsNumber, IsDecimal, IsObject, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
@@ -9,24 +9,6 @@ import { FuelEmbeddedDto } from './fuel-embedded.dto';
 import { BombEmbeddedDto } from './bomb-embedded.dto';
 import { FidelityCardEmbeddedDto } from './fidelity-card-embedded.dto';
 
-
-
-class BombDto{
-    @IsString()
-    bombId: string
-
-    @IsNumber()
-    bombNumber: number
-}
-
-
-class EmployeeDto{
-    @IsString()
-    employeeId: string
-
-    @IsString()
-    employeeName: string
-}
 
 export class CreateSaleDto {
 
