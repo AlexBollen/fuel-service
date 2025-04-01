@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException  } from '@nestjs/common';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 import { Sale, SaleDocument } from './schemas/sale.schema';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
+import axios, { Axios } from 'axios';
 
 
 
@@ -15,19 +16,48 @@ export class SaleService {
 
 
   async create(createSaleDto: CreateSaleDto): Promise<Sale> {
-
-    
-
-    //Aquí debería ir alguna lógica del negocio
-
-
-
    
-    const newSale = new this.saleModel({
-      ...createSaleDto,
-      saleId: uuidv4(),
-    });
-    return await newSale.save();
+    try {
+      const newSale = new this.saleModel({
+        ...createSaleDto,
+        saleId: uuidv4(),
+      });
+  
+      if(!newSale.paymentMethods){
+       /* const payment = {
+          paymentId:  '1234',
+          methood: 'cash',
+          amount: '100.00'
+        }
+        newSale.paymentMethods.push(payment)*/
+      }
+  
+      if(!newSale.customer){
+        /*const customer = {
+          customerId: '1234',
+          customerName: 'Juan',
+          nit: '123'
+        }
+  
+        newSale.customer = customer*/
+      }
+  
+      if(newSale.fidelityCard){
+        try {
+          const response = await axios.post('https://payments/post/fidelitycard/', {
+           fidelityCard: newSale.fidelityCard
+          });
+      
+        } catch (error) {
+          throw new InternalServerErrorException('Ocurrió un error al registrar la tarjeta de fidelidad: ', error);
+        }
+      }
+  
+      return await newSale.save();
+    } catch (error) {
+      throw new InternalServerErrorException('No se pudo completar la venta: ', error);
+    }
+    
   }
 
   async findAll(): Promise<Sale[]> {

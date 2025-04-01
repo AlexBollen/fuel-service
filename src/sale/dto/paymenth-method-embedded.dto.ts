@@ -1,4 +1,4 @@
-import { IsString,  Min, IsDecimal} from 'class-validator';
+import { IsString,  Min, IsDecimal } from 'class-validator';
 import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 

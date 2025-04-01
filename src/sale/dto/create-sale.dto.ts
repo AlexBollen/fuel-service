@@ -1,4 +1,4 @@
-import { IsString, IsInt, Min, IsPositive, ValidateNested, IsArray, IsNumber, IsDecimal, IsObject, IsOptional } from 'class-validator';
+import { IsString, ValidateNested, IsArray, IsNumber, IsDecimal, IsObject, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
@@ -43,7 +43,8 @@ export class CreateSaleDto {
     @ValidateNested() 
     @IsObject()
     @Type(() => CustomerEmbeddedDto) 
-    customer: CustomerEmbeddedDto
+    @IsOptional()
+    customer?: CustomerEmbeddedDto
 
     
     @ApiProperty({
@@ -86,7 +87,8 @@ export class CreateSaleDto {
     @IsArray()
     @ValidateNested({each:true}) 
     @Type(() => PaymentMethodDto) 
-    paymentMethods: PaymentMethodDto[]
+    @IsOptional()
+    paymentMethods?: PaymentMethodDto[]
 
     
     @ApiProperty({
@@ -102,6 +104,7 @@ export class CreateSaleDto {
     @IsObject()
     @IsOptional()
     @Type(() => FidelityCardEmbeddedDto) 
+    @IsOptional()
     fidelityCard?: FidelityCardEmbeddedDto
 
     @ApiProperty({
@@ -117,12 +120,12 @@ export class CreateSaleDto {
       createdBy: EmployeeEmbeddedDto;
 
     @ApiProperty({ 
-        description: 'Estado de la venta', 
+        description: 'Estado de la venta (1 = activo, 2 = en proceso, 0 = cancelada', 
         example: '1'  
     })
     @IsNumber()
     @IsOptional()
-    status?: number = 1;
+    status?: number = 2;
 
 
 
