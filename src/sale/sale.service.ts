@@ -43,14 +43,14 @@ export class SaleService {
       }
   
       if(newSale.fidelityCard){
-        try {
+        /*try {
           const response = await axios.post('https://payments/post/fidelitycard/', {
            fidelityCard: newSale.fidelityCard
           });
       
         } catch (error) {
           throw new InternalServerErrorException('Ocurrió un error al registrar la tarjeta de fidelidad: ', error);
-        }
+        }*/
       }
   
       return await newSale.save();
