@@ -4,6 +4,7 @@ import { FuelType, FuelTypeDocument } from './schemas/fuel-type.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { v4 as uuidv4 } from 'uuid';
+import { UpdateFuelTypeDto } from './dto/update-fuel-type.dto';
 
 @Injectable()
 export class FuelTypesService {
@@ -32,17 +33,17 @@ export class FuelTypesService {
   }
 
   async update(
-    id: string,
-    updateFuelTypeDto: Partial<CreateFuelTypeDto>,
+    fuelId: string,
+    updateFuelTypeDto: UpdateFuelTypeDto,
   ): Promise<FuelType> {
-    const updatedFuelType = await this.fuelTypeModel
-      .findOneAndUpdate({ fuelId: id }, updateFuelTypeDto, { new: true })
-      .exec();
-
+    const updatedFuelType = await this.fuelTypeModel.findOneAndUpdate(
+      { fuelId, status: true },
+      { ...updateFuelTypeDto, updatedAt: new Date() },
+      { new: true },
+    );
     if (!updatedFuelType) {
-      throw new NotFoundException(`FuelType con ID "${id}" no encontrado.`);
+      throw new NotFoundException(`FuelType con ID "${fuelId}" no encontrado.`);
     }
-
     return updatedFuelType;
   }
 

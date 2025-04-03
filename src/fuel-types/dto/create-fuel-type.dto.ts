@@ -1,11 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsBoolean,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { IsNumber, IsString, ValidateNested } from 'class-validator';
 import { EmployeeEmbeddedDto } from './employee-embedded.dto';
 import { Type } from 'class-transformer';
 
@@ -29,19 +23,4 @@ export class CreateFuelTypeDto {
   @ValidateNested()
   @Type(() => EmployeeEmbeddedDto)
   createdBy: EmployeeEmbeddedDto;
-
-  @ApiProperty({
-    description: 'Empleado que actualizó el registro',
-    example: { employeeId: '456', employeeName: 'Maria López' },
-    required: false,
-  })
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => EmployeeEmbeddedDto)
-  updatedBy?: EmployeeEmbeddedDto;
-
-  @ApiProperty({ description: 'Estado del tipo de gasolina', example: true })
-  @IsBoolean()
-  @IsOptional()
-  status?: boolean;
 }

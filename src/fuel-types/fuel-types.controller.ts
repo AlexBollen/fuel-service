@@ -19,11 +19,11 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Fuel Types')
-@Controller('fuel-types')
+@Controller('fuelType')
 export class FuelTypesController {
   constructor(private readonly fuelTypesService: FuelTypesService) {}
 
-  @Post()
+  @Post('/create')
   @ApiOperation({
     summary: 'Crear un nuevo tipo de gasolina',
     description: 'Este endpoint permite crear un nuevo tipo de gasolina.',
@@ -40,7 +40,7 @@ export class FuelTypesController {
     return this.fuelTypesService.create(createFuelTypeDto);
   }
 
-  @Get()
+  @Get('/list')
   @ApiOperation({ summary: 'Obtener todos los tipos de gasolina activos' })
   @ApiResponse({
     status: 200,
@@ -51,22 +51,22 @@ export class FuelTypesController {
     return this.fuelTypesService.findAll();
   }
 
-  @Get(':id')
+  @Get('/list/:fuelId')
   @ApiOperation({ summary: 'Obtener un tipo de gasolina por ID' })
-  @ApiParam({ name: 'id', description: 'ID del tipo de gasolina' })
+  @ApiParam({ name: 'fuelId', description: 'ID del tipo de gasolina' })
   @ApiResponse({
     status: 200,
     description: 'Gasolina encontrada',
     type: FuelType,
   })
   @ApiResponse({ status: 404, description: 'Gasolina no encontrada' })
-  findOne(@Param('id') id: string): Promise<FuelType> {
-    return this.fuelTypesService.findOne(id);
+  findOne(@Param('fuelId') fuelId: string): Promise<FuelType> {
+    return this.fuelTypesService.findOne(fuelId);
   }
 
-  @Patch(':id')
+  @Patch('/update/:fuelId')
   @ApiOperation({ summary: 'Actualizar un tipo de gasolina por ID' })
-  @ApiParam({ name: 'id', description: 'ID del tipo de gasolina' })
+  @ApiParam({ name: 'fuelId', description: 'ID del tipo de gasolina' })
   @ApiBody({ type: CreateFuelTypeDto })
   @ApiResponse({
     status: 200,
@@ -75,24 +75,24 @@ export class FuelTypesController {
   })
   @ApiResponse({ status: 404, description: 'Gasolina no encontrada' })
   update(
-    @Param('id') id: string,
+    @Param('fuelId') fuelId: string,
     @Body() updateFuelTypeDto: Partial<CreateFuelTypeDto>,
   ): Promise<FuelType> {
-    return this.fuelTypesService.update(id, updateFuelTypeDto);
+    return this.fuelTypesService.update(fuelId, updateFuelTypeDto);
   }
 
-  @Delete(':id')
+  @Delete('/delete/:fuelId')
   @ApiOperation({
     summary: 'Desactivar un tipo de gasolina por ID (Soft Delete)',
   })
-  @ApiParam({ name: 'id', description: 'ID del tipo de gasolina' })
+  @ApiParam({ name: 'fuelId', description: 'ID del tipo de gasolina' })
   @ApiResponse({
     status: 200,
     description: 'Gasolina desactivada',
     type: FuelType,
   })
   @ApiResponse({ status: 404, description: 'Gasolina no encontrada' })
-  remove(@Param('id') id: string): Promise<FuelType> {
-    return this.fuelTypesService.remove(id);
+  remove(@Param('fuelId') fuelId: string): Promise<FuelType> {
+    return this.fuelTypesService.remove(fuelId);
   }
 }
