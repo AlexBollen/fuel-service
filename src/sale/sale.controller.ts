@@ -33,7 +33,7 @@ export class SaleController {
   @ApiResponse({
     status: 200,
     description: 'Listado de ventas',
-    type: Sale,
+    type: [Sale],
   })
   findAll(): Promise<Sale[]> {
     return this.saleService.findAll();
@@ -61,6 +61,7 @@ export class SaleController {
     return this.saleService.findOne(fuelSaleId);
   }
 
+
   @Patch('/update/:fuelSaleId')
   @ApiOperation({
     summary: 'Editar una venta',
@@ -70,7 +71,6 @@ export class SaleController {
     name: 'fuelSaleId',
     description: 'ID de la venta a editar',
   })
- 
   @ApiResponse({
     status: 200,
     description: 'Venta editada correctamente',
@@ -80,7 +80,6 @@ export class SaleController {
     status: 404,
     description: 'Venta no encontrada',
   })
-
   update(@Param('fuelSaleId') fuelSaleId: string, @Body() updateSaleDto: UpdateSaleDto): Promise<Sale> {
     return this.saleService.update(fuelSaleId, updateSaleDto);
   }
