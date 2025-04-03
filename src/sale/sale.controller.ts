@@ -71,6 +71,7 @@ export class SaleController {
     name: 'fuelSaleId',
     description: 'ID de la venta a editar',
   })
+  @ApiBody({ type: UpdateSaleDto })
   @ApiResponse({
     status: 200,
     description: 'Venta editada correctamente',
