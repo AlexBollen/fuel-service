@@ -84,7 +84,7 @@ export class SaleController {
     return this.saleService.update(fuelSaleId, updateSaleDto);
   }
 
-  @Delete('/delete/:fuelSaleId')
+  @Patch('/delete/:fuelSaleId')
   @ApiOperation({
     summary: 'Eliminar una venta',
     description: 'Este endpoint elimina lógicamente una venta específica',
