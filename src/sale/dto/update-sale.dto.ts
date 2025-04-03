@@ -6,16 +6,15 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 export class UpdateSaleDto extends PartialType(CreateSaleDto) {
-    
-     @ApiProperty({
-            type: EmployeeEmbeddedDto,
-            description: 'Datos de empleado que edita la venta',
-            example: {
-              employeeId: 'EMP123',
-              employeeName: 'María Rojas',
-            },
-          })
-          @ValidateNested()
-          @Type(() => EmployeeEmbeddedDto)
-    updatedBy: EmployeeEmbeddedDto;
+  @ApiProperty({
+    type: EmployeeEmbeddedDto,
+    description: 'Datos de empleado que edita la venta',
+    example: {
+      employeeId: 'EMP123',
+      employeeName: 'María Rojas',
+    },
+  })
+  @ValidateNested()
+  @Type(() => EmployeeEmbeddedDto)
+  updatedBy: EmployeeEmbeddedDto;
 }
