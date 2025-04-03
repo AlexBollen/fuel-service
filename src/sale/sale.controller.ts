@@ -61,7 +61,7 @@ export class SaleController {
     return this.saleService.findOne(fuelSaleId);
   }
 
-  @Patch('/update')
+  @Patch('/update/:fuelSaleId')
   @ApiOperation({
     summary: 'Editar una venta',
     description: 'Este endpoint edita una venta específica',
@@ -80,6 +80,7 @@ export class SaleController {
     status: 404,
     description: 'Venta no encontrada',
   })
+
   update(@Param('fuelSaleId') fuelSaleId: string, @Body() updateSaleDto: UpdateSaleDto): Promise<Sale> {
     return this.saleService.update(fuelSaleId, updateSaleDto);
   }

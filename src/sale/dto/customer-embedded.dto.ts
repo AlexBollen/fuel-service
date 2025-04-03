@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 
@@ -23,6 +23,6 @@ export class CustomerEmbeddedDto{
         description: 'Nit del cliente',
         example: '123456789',
       })
-    @IsString()
+    @IsOptional()
     nit: string
 }

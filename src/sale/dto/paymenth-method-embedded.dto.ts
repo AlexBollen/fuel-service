@@ -1,4 +1,4 @@
-import { IsString,  Min, IsDecimal } from 'class-validator';
+import { IsString,  Min, IsDecimal, IsOptional } from 'class-validator';
 import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -16,6 +16,7 @@ export class PaymentMethodDto {
         example: 'Efectivo',
       })
     @IsString()
+    @IsOptional()
     methood: string;
     
     @Min(0)

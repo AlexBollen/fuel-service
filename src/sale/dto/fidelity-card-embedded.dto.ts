@@ -1,4 +1,4 @@
-import { IsString,  Min, IsNumber} from 'class-validator';
+import { IsString,  Min, IsNumber, IsOptional} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 
@@ -16,6 +16,7 @@ export class FidelityCardEmbeddedDto{
         example: '20',
       })
     @IsNumber()
+    @IsOptional()
     earnedPoints: number;
 
     @Min(0)
@@ -24,6 +25,7 @@ export class FidelityCardEmbeddedDto{
         example: '20',
       })
     @IsNumber()
+    @IsOptional()
     lostPoint: number;
     
     }

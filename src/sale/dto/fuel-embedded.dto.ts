@@ -1,4 +1,4 @@
-import { IsString, IsDecimal } from 'class-validator';
+import { IsString, IsDecimal, IsOptional } from 'class-validator';
 import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -16,6 +16,7 @@ export class FuelEmbeddedDto{
         example: 'Diésel',
       })
     @IsString()
+    @IsOptional()
     fuelName: string;
     
     @ApiProperty({

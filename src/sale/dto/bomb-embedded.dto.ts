@@ -1,4 +1,4 @@
-import { IsString, IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 
@@ -15,6 +15,7 @@ export class BombEmbeddedDto{
         example: '1',
       })
     @IsNumber()
-    bombNumber: number;
+    @IsOptional()
+    bombNumber?: number;
     
     }
