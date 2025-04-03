@@ -17,6 +17,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { UpdateFuelTypeDto } from './dto/update-fuel-type.dto';
 
 @ApiTags('Fuel Types')
 @Controller('fuelType')
@@ -67,7 +68,7 @@ export class FuelTypesController {
   @Patch('/update/:fuelId')
   @ApiOperation({ summary: 'Actualizar un tipo de gasolina por ID' })
   @ApiParam({ name: 'fuelId', description: 'ID del tipo de gasolina' })
-  @ApiBody({ type: CreateFuelTypeDto })
+  @ApiBody({ type: UpdateFuelTypeDto })
   @ApiResponse({
     status: 200,
     description: 'Gasolina actualizada',
@@ -76,14 +77,14 @@ export class FuelTypesController {
   @ApiResponse({ status: 404, description: 'Gasolina no encontrada' })
   update(
     @Param('fuelId') fuelId: string,
-    @Body() updateFuelTypeDto: Partial<CreateFuelTypeDto>,
+    @Body() updateFuelTypeDto: UpdateFuelTypeDto,
   ): Promise<FuelType> {
     return this.fuelTypesService.update(fuelId, updateFuelTypeDto);
   }
 
   @Delete('/delete/:fuelId')
   @ApiOperation({
-    summary: 'Desactivar un tipo de gasolina por ID (Soft Delete)',
+    summary: 'Desactivar un tipo de gasolina por ID (Borrado lógico)',
   })
   @ApiParam({ name: 'fuelId', description: 'ID del tipo de gasolina' })
   @ApiResponse({
