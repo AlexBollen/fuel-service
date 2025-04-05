@@ -17,7 +17,7 @@ import { Alert } from 'src/alert/schemas/alert.schema';
 export class BombController {
   constructor(private readonly bombService: BombService) {}
 
-  @Post()
+  @Post('/create')
   @ApiOperation({
     summary: 'Crear una nueva bomba',
     description: 'Este endpoint permite crear una nueva bomba',
@@ -44,6 +44,48 @@ export class BombController {
   })
   findAll(): Promise<Bomb[]> {
     return this.bombService.findAll();
+  }
+
+  @Get('/list/active')
+  @ApiOperation({
+    summary: 'Listar bombas activas',
+    description: 'Obtener solo las bombas que se encuentran en estado activo',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado de bombas',
+    type: [Bomb],
+  })
+  async listActiveBombs(): Promise<Bomb[]> {
+    return this.bombService.findByStatus(1);
+  }
+
+  @Get('/list/inactive')
+  @ApiOperation({
+    summary: 'Listar bombas inactivas',
+    description: 'Obtener solo las bombas que se encuentran en estado inactivo',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado de bombas',
+    type: [Bomb],
+  })
+  async listInactiveBombs(): Promise<Bomb[]> {
+    return this.bombService.findByStatus(0);
+  }
+
+  @Get('/list/mainteance')
+  @ApiOperation({
+    summary: 'Listar bombas en mantenimiento',
+    description: 'Obtener solo las bombas que se encuentran en estado de mantenimiento',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado de bombas',
+    type: [Bomb],
+  })
+  async listMainteanceBombs(): Promise<Bomb[]> {
+    return this.bombService.findByStatus(2);
   }
 
   @Get('/list/:bombId')
@@ -73,20 +115,24 @@ export class BombController {
     summary: 'Editar una bomba',
     description: 'Este endpoint edita una bomba específica',
   })
+  @ApiBody({ type: UpdateBombDto })
   @ApiParam({
     name: 'bombId',
     description: 'ID de la bomba a editar',
   })
   @ApiResponse({
     status: 200,
-    description: 'Bomba editada correctamente',
+    description: 'Se actualizó correctamente correctamente la bomba',
     type: Bomb,
   })
   @ApiResponse({
     status: 404,
     description: 'Bomba no encontrada',
   })
-  update(@Param('bombId') bombId: string, @Body() updateBombDto: UpdateBombDto) {
+  update(
+    @Param('bombId') bombId: string,
+    @Body() updateBombDto: UpdateBombDto,
+  ) {
     return this.bombService.update(bombId, updateBombDto);
   }
 

@@ -1,4 +1,4 @@
-import { Injectable,  NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBombDto } from './dto/create-bomb.dto';
 import { UpdateBombDto } from './dto/update-bomb.dto';
 import { Model, Types } from 'mongoose';
@@ -8,9 +8,7 @@ import { Bomb, BombDocument } from './schemas/bomb.schema';
 
 @Injectable()
 export class BombService {
-  constructor(
-    @InjectModel(Bomb.name) private bombModel: Model<BombDocument>,
-  ) {}
+  constructor(@InjectModel(Bomb.name) private bombModel: Model<BombDocument>) {}
 
   async create(createBombDto: CreateBombDto): Promise<Bomb> {
     const newBomb = new this.bombModel({
@@ -21,7 +19,7 @@ export class BombService {
   }
 
   async findAll(): Promise<Bomb[]> {
-    return await this.bombModel.find({ status: 1 }).exec(); 
+    return await this.bombModel.find().exec();
   }
 
   async findOne(bombId: string): Promise<Bomb> {
@@ -30,6 +28,10 @@ export class BombService {
       throw new NotFoundException(`Bomba con ID ${bombId} no encontrada.`);
     }
     return bomb;
+  }
+
+  async findByStatus(status: number): Promise<Bomb[]> {
+    return await this.bombModel.find({ status }).exec();
   }
 
   async update(bombId: string, updateBombDto: UpdateBombDto): Promise<Bomb> {
@@ -45,15 +47,13 @@ export class BombService {
   }
 
   async remove(bombId: string): Promise<string> {
-    const bomb = await this.bombModel.findOneAndUpdate(
-      { bombId: bombId },
-      { status: 0 }, 
-      { new: true },
-    ).exec();
+    const bomb = await this.bombModel
+      .findOneAndUpdate({ bombId: bombId }, { status: 0 }, { new: true })
+      .exec();
 
     if (!bomb) {
       throw new NotFoundException(`Bomba con ID ${bombId} no encontrada.`);
     }
-    return `Bomba con ID ${bombId} eliminada correctamente`;
+    return `Se eliminó correctamente la bomba: ${bombId} `;
   }
 }
