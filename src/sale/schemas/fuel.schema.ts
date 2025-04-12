@@ -6,8 +6,8 @@ export class FuelEmbedded {
   @Prop({ type: String, required: true })
   fuelId: string;
 
-  @Prop({ type: String, required: true })
-  fuelName: string;
+  @Prop({ type: String, required: false })
+  fuelName?: string;
 
   @Prop({ type: Types.Decimal128, required: true })
   salePriceGalon: Types.Decimal128;

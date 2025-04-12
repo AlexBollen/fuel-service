@@ -6,8 +6,8 @@ export class PaymentMethodEmbedded {
   @Prop({ type: String, required: true })
   paymentId: string;
 
-  @Prop({ type: String, required: true })
-  methood: string;
+  @Prop({ type: String, required: false })
+  methood?: string;
 
   @Prop({ type: Types.Decimal128, required: true })
   amount: Types.Decimal128;

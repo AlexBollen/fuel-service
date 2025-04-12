@@ -28,10 +28,10 @@ export class Sale {
   @Prop({ type: BombEmbedded, required: true })
   bomb: BombEmbedded;
 
-  @Prop({ type: FuelEmbedded, required: true })
+  @Prop({ type: FuelEmbedded, required: false })
   fuel: FuelEmbedded;
 
-  @Prop({ type: [PaymentMethodEmbedded], required: true })
+  @Prop({ type: [PaymentMethodEmbedded], required: false })
   paymentMethods: PaymentMethodEmbedded[];
 
   @Prop({ type: FidelityCardEmbedded, required: false })
