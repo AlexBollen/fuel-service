@@ -1,0 +1,27 @@
+services:
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3002:${PORT}
+    env_file:
+      - .env
+    environment:
+      PORT: ${PORT}
+      MONGO_URI: ${MONGO_URI}
+      NODE_ENV: development
+    command: ["yarn", "run", "start:dev"]
+
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3002:${PORT}
+    env_file:
+      - .env
+    environment:
+      PORT: ${PORT}
+      MONGO_URI: ${MONGO_URI}
+      NODE_ENV: ${NODE_ENV}
