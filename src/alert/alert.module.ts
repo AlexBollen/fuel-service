@@ -3,7 +3,6 @@ import { AlertService } from './alert.service';
 import { AlertController } from './alert.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Alert, AlertSchema } from './schemas/alert.schema';
-
 import { Sale, SaleSchema } from 'src/sale/schemas/sale.schema';
 import { SaleModule } from 'src/sale/sale.module';
 

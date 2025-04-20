@@ -147,6 +147,8 @@ export class SaleService {
         }*/
       }
 
+      //await this.bombService.update(newSale.bomb.bombId, {status = 3});
+
       if (suscesfully) {
         newSale.status = 1;
       } else {
