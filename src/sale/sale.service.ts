@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   InternalServerErrorException,
+  BadRequestException,
 } from '@nestjs/common';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
@@ -10,35 +11,129 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import axios, { Axios } from 'axios';
+import { BombService } from 'src/bomb/bomb.service';
+import { FuelTypesService } from 'src/fuel-types/fuel-types.service';
+import { Types } from 'mongoose';
+import { SERVICIO_PAGOS, SERVICIO_ADMINISTRACION } from 'src/constants/urls';
 
 @Injectable()
 export class SaleService {
-  constructor(@InjectModel(Sale.name) private saleModel: Model<SaleDocument>) {}
+  constructor(
+    @InjectModel(Sale.name) private saleModel: Model<SaleDocument>,
+    private readonly bombService: BombService,
+    private readonly fuelTypesService: FuelTypesService,
+  ) {}
 
   async create(createSaleDto: CreateSaleDto): Promise<Sale> {
     try {
       const newSale = new this.saleModel({
         ...createSaleDto,
-        saleId: uuidv4(),
+        fuelSaleId: uuidv4(),
       });
 
-      if (!newSale.paymentMethods) {
-        /* const payment = {
-          paymentId:  '1234',
-          methood: 'cash',
-          amount: '100.00'
-        }  
-        newSale.paymentMethods.push(payment)*/
+      let suscesfully = true;
+
+      if (!newSale.bomb.bombNumber) {
+        const bomb = await this.bombService.findOne(newSale.bomb.bombId);
+
+        if (bomb) {
+          newSale.bomb.bombNumber = bomb.bombNumber;
+        } else {
+          throw new InternalServerErrorException('Bomba no encontrada');
+        }
       }
 
-      if (!newSale.customer) {
-        /*const customer = {
-          customerId: '1234',
-          customerName: 'Juan',
-          nit: '123'
+      if (!newSale.fuel.fuelName || !newSale.fuel.salePriceGalon) {
+        const fuel = await this.fuelTypesService.findOne(newSale.fuel.fuelId);
+
+        if (fuel) {
+          newSale.fuel.fuelName = fuel.fuelName;
+          newSale.fuel.salePriceGalon = Types.Decimal128.fromString(
+            fuel.salePriceGalon.toString(),
+          );
+        } else {
+          throw new InternalServerErrorException('Bomba no encontrada');
         }
-  
-        newSale.customer = customer*/
+      }
+
+      if (!newSale.amount && !newSale.consumedQuantity) {
+        throw new BadRequestException(
+          'Se necesita el total de la venta o la cantidad consumida de combustible',
+        );
+      } else if (!newSale.amount) {
+        newSale.amount = Types.Decimal128.fromString(
+          (
+            parseFloat(newSale.consumedQuantity.toString()) *
+            parseFloat(newSale.fuel.salePriceGalon.toString())
+          ).toFixed(2),
+        );
+      } else if (!newSale.consumedQuantity) {
+        newSale.amount = Types.Decimal128.fromString(
+          (
+            parseFloat(newSale.amount.toString()) /
+            parseFloat(newSale.fuel.salePriceGalon.toString())
+          ).toFixed(2),
+        );
+      }
+
+      if (newSale.paymentMethods) {
+        await Promise.all(
+          newSale.paymentMethods.map(async (methodItem) => {
+            try {
+              const response = await axios.get(
+                `${SERVICIO_PAGOS}/metodos/obtener/${methodItem.paymentId}`,
+              );
+              if (response.data.Metodo) {
+                methodItem.method = response.data.Metodo;
+              } else {
+                suscesfully = false;
+              }
+            } catch (_) {
+              suscesfully = false;
+            }
+          }),
+        );
+      }
+
+      if (!newSale.customer.nit) {
+        newSale.customer.customerName = 'CF';
+      } else if (
+        !newSale.customer.customerId ||
+        !newSale.customer.customerName
+      ) {
+        try {
+          const response = await axios.get(
+            `${SERVICIO_PAGOS}/clientes/obtener/${newSale.customer.nit}`,
+          );
+
+          if (response.data.cliente) {
+            const cliente = response.data.cliente;
+            newSale.customer.customerId = cliente._id;
+            newSale.customer.customerName = cliente.nombreCliente;
+          } else {
+            suscesfully = false;
+          }
+        } catch (_) {
+          suscesfully = false;
+        }
+      }
+
+      if (!newSale.createdBy.employeeName) {
+        try {
+          const employee = await axios.get(
+            `${SERVICIO_ADMINISTRACION}/GET/empleados/${newSale.createdBy.employeeId}`,
+          );
+          if (employee.data.empleado) {
+            newSale.createdBy.employeeName =
+              employee.data.empleado.nombres +
+              ' ' +
+              employee.data.empleado.apellidos;
+          } else {
+            suscesfully = false;
+          }
+        } catch (_) {
+          suscesfully = false;
+        }
       }
 
       if (newSale.fidelityCard) {
@@ -52,11 +147,17 @@ export class SaleService {
         }*/
       }
 
-      return await newSale.save();
+      if (suscesfully) {
+        newSale.status = 1;
+      } else {
+        newSale.status = 2;
+      }
+      //return await newSale.save();
+      return newSale;
     } catch (error) {
+      console.error('Error en createSale:', error);
       throw new InternalServerErrorException(
-        'No se pudo completar la venta: ',
-        error,
+        `No se pudo completar la venta: ${error.message}`,
       );
     }
   }

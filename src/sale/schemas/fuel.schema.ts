@@ -9,8 +9,8 @@ export class FuelEmbedded {
   @Prop({ type: String, required: false })
   fuelName?: string;
 
-  @Prop({ type: Types.Decimal128, required: true })
-  salePriceGalon: Types.Decimal128;
+  @Prop({ type: Types.Decimal128, required: false })
+  salePriceGalon?: Types.Decimal128;
 }
 
 export const FuelEmbeddedSchema = SchemaFactory.createForClass(FuelEmbedded);

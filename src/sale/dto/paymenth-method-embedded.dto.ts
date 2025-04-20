@@ -16,13 +16,14 @@ export class PaymentMethodDto {
   })
   @IsString()
   @IsOptional()
-  methood: string;
+  method?: string;
 
-  @Min(0)
+  
   @ApiProperty({
     description: 'Monto pagado con ese método de pago',
     example: '100.00',
   })
-  @IsDecimal()
-  amount: Types.Decimal128;
+  @IsDecimal({ decimal_digits: '1,2' })
+  @IsString()
+  amount: string;
 }

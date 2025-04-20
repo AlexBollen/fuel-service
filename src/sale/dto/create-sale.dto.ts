@@ -18,22 +18,24 @@ import { BombEmbeddedDto } from './bomb-embedded.dto';
 import { FidelityCardEmbeddedDto } from './fidelity-card-embedded.dto';
 
 export class CreateSaleDto {
-  @IsString()
-  fuelId: string;
-
+  
   @ApiProperty({
     description: 'Total de la venta',
     example: '100.00',
   })
-  @IsDecimal()
-  amount: Types.Decimal128;
+  @IsDecimal({ decimal_digits: '1,2' })
+  @IsString()
+  @IsOptional()
+  amount?: string;
 
   @ApiProperty({
     description: 'Cantidad consumida',
     example: '5.0',
   })
-  @IsDecimal()
-  consumedQuantity: Types.Decimal128;
+  @IsDecimal({ decimal_digits: '1,2' })
+  @IsString()
+  @IsOptional()
+  consumedQuantity?: string;
 
   @ApiProperty({
     type: CustomerEmbeddedDto,
@@ -90,7 +92,7 @@ export class CreateSaleDto {
   @ValidateNested({ each: true })
   @Type(() => PaymentMethodDto)
   @IsOptional()
-  paymentMethods?: PaymentMethodDto[];
+  paymentMethods: PaymentMethodDto[];
 
   @ApiProperty({
     type: FidelityCardEmbeddedDto,
@@ -103,7 +105,6 @@ export class CreateSaleDto {
   })
   @ValidateNested()
   @IsObject()
-  @IsOptional()
   @Type(() => FidelityCardEmbeddedDto)
   @IsOptional()
   fidelityCard?: FidelityCardEmbeddedDto;

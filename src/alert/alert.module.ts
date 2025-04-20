@@ -3,8 +3,8 @@ import { AlertService } from './alert.service';
 import { AlertController } from './alert.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Alert, AlertSchema } from './schemas/alert.schema';
-import { EmployeeEmbeddedSchema } from 'src/sale/schemas/employee.schema';
-import { Sale } from 'src/sale/schemas/sale.schema';
+
+import { Sale, SaleSchema } from 'src/sale/schemas/sale.schema';
 import { SaleModule } from 'src/sale/sale.module';
 
 @Module({
@@ -13,7 +13,7 @@ import { SaleModule } from 'src/sale/sale.module';
   imports: [
     MongooseModule.forFeature([
       { name: Alert.name, schema: AlertSchema },
-      { name: Sale.name, schema: EmployeeEmbeddedSchema },
+      { name: Sale.name, schema: SaleSchema },
     ]),
     SaleModule,
   ],

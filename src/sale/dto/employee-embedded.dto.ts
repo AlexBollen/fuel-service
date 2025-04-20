@@ -15,5 +15,5 @@ export class EmployeeEmbeddedDto {
   })
   @IsString()
   @IsOptional()
-  employeeName: string;
+  employeeName?: string;
 }

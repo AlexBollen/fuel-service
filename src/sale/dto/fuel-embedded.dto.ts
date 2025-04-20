@@ -16,12 +16,15 @@ export class FuelEmbeddedDto {
   })
   @IsString()
   @IsOptional()
-  fuelName: string;
+  fuelName?: string;
 
   @ApiProperty({
-    description: 'Precio del combustible por galon',
+    description: 'Precio del combustible por galón',
     example: '27.09',
   })
-  @IsDecimal()
-  salePriceGalon: Types.Decimal128;
+  @IsDecimal({ decimal_digits: '1,2' })
+  @IsOptional()
+  @IsString()
+  salePriceGalon?: string;
 }
+
