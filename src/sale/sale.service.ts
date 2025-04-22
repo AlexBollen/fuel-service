@@ -10,7 +10,7 @@ import { Sale, SaleDocument } from './schemas/sale.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import axios, { Axios } from 'axios';
+import axios from 'axios';
 import { BombService } from 'src/bomb/bomb.service';
 import { FuelTypesService } from 'src/fuel-types/fuel-types.service';
 import { Types } from 'mongoose';
@@ -188,9 +188,11 @@ export class SaleService {
       })
       */
 
-      if (suscesfully) { //No missing data
+      if (suscesfully) {
+        //No missing data
         newSale.status = 1;
-      } else { //Missing some data
+      } else {
+        //Missing some data
         newSale.status = 2;
       }
       //return await newSale.save();
