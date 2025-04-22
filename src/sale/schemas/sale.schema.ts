@@ -34,8 +34,9 @@ export class Sale {
   @Prop({ type: [PaymentMethodEmbedded], required: false })
   paymentMethods?: PaymentMethodEmbedded[];
 
+  /*
   @Prop({ type: FidelityCardEmbedded, required: false })
-  fidelityCard?: FidelityCardEmbedded;
+  fidelityCard?: FidelityCardEmbedded;*/
 
   @Prop({ type: EmployeeEmbedded, required: true })
   createdBy: EmployeeEmbedded;

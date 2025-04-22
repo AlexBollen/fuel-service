@@ -32,12 +32,14 @@ export class SaleService {
       });
 
       let suscesfully = true;
+      let servedQuantityBomb = 0;
 
       if (!newSale.bomb.bombNumber) {
         const bomb = await this.bombService.findOne(newSale.bomb.bombId);
 
         if (bomb) {
           newSale.bomb.bombNumber = bomb.bombNumber;
+          //servedQuantityBomb = bomb.servedQuantity;
         } else {
           throw new InternalServerErrorException('Bomba no encontrada');
         }
@@ -97,25 +99,6 @@ export class SaleService {
 
       if (!newSale.customer.nit) {
         newSale.customer.customerName = 'CF';
-      } else if (
-        !newSale.customer.customerId ||
-        !newSale.customer.customerName
-      ) {
-        try {
-          const response = await axios.get(
-            `${SERVICIO_PAGOS}/clientes/obtener/${newSale.customer.nit}`,
-          );
-
-          if (response.data.cliente) {
-            const cliente = response.data.cliente;
-            newSale.customer.customerId = cliente._id;
-            newSale.customer.customerName = cliente.nombreCliente;
-          } else {
-            suscesfully = false;
-          }
-        } catch (_) {
-          suscesfully = false;
-        }
       }
 
       if (!newSale.createdBy.employeeName) {
@@ -136,22 +119,78 @@ export class SaleService {
         }
       }
 
-      if (newSale.fidelityCard) {
-        /*try {
-          const response = await axios.post('https://payments/post/fidelitycard/', {
-           fidelityCard: newSale.fidelityCard
-          });
-      
-        } catch (error) {
-          throw new InternalServerErrorException('Ocurrió un error al registrar la tarjeta de fidelidad: ', error);
-        }*/
+      const metodosPago = createSaleDto.paymentMethods.map((pm) => ({
+        IdMetodo: pm.paymentId,
+        Monto: pm.amount,
+        ...(pm.bankId && { IdBanco: pm.bankId }),
+        ...(pm.cardNumber && { Notarjeta: pm.cardNumber }),
+      }));
+
+      try {
+        const responseTransaction = await axios.post(
+          `${SERVICIO_PAGOS}/transaccion/crear/`,
+          {
+            Nit: newSale.customer.nit,
+            idCaja: '',
+            idServicioTransaccion: 0,
+            detalle: [
+              {
+                producto: newSale.fuel.fuelName,
+                cantidad: newSale.consumedQuantity,
+                precio: newSale.fuel.salePriceGalon,
+              },
+            ],
+            MetodosPago: metodosPago,
+          },
+        );
+
+        if (newSale.customer.nit != 'CF') {
+          if (responseTransaction.data.Factura.Cliente) {
+            const customer = responseTransaction.data.Factura.Cliente;
+            if (customer.IdCliente)
+              newSale.customer.customerId = customer.IdCliente;
+
+            if (customer?.NombreCliente || customer?.ApellidoCliente) {
+              const nombre = customer?.NombreCliente ?? '';
+              const apellido = customer?.ApellidoCliente ?? '';
+              newSale.customer.customerName = `${nombre} ${apellido}`.trim();
+            }
+          }
+        }
+
+        const transaction = responseTransaction.data;
+        if (transaction.IdTransaccion) {
+          //newSale.idTransaction = transaction.IdTransaccion
+        }
+        if (transaction.NoTransaccion) {
+          //newSale.noTransaction = transaction.IdTransaccion
+        }
+        if (transaction.Factura.NoFactura) {
+          //newSale.noBill = transaction.Factura.NoFactura
+        }
+      } catch (_) {
+        suscesfully = false;
       }
 
-      //await this.bombService.update(newSale.bomb.bombId, {status = 3});
+      //await this.bombService.update(newSale.bomb.bombId, {
+      // status = 3,
+      // servedQuantity: servedQuantityBomb + newSale.consumedQuantity
+      // });
 
-      if (suscesfully) {
+      /*this.bombService.update(newSale.bomb.bombId, {
+        servedQuantity: servedQuantityBomb + newSale.consumedQuantity
+      })*/
+
+      /*
+      const capacity = this.generalDepositService.capacity()
+      this.generalDepositService.update({
+        currentCapacity: 
+      })
+      */
+
+      if (suscesfully) { //No missing data
         newSale.status = 1;
-      } else {
+      } else { //Missing some data
         newSale.status = 2;
       }
       //return await newSale.save();

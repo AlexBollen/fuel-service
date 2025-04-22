@@ -5,7 +5,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class PaymentMethodDto {
   @ApiProperty({
     description: 'Id del método de pago',
-    example: '', //Falta coordinar con pagos
+    example: 'ID', 
   })
   @IsString()
   paymentId: string;
@@ -26,4 +26,21 @@ export class PaymentMethodDto {
   @IsDecimal({ decimal_digits: '1,2' })
   @IsString()
   amount: string;
+
+  @ApiProperty({
+    description: 'Id del banco',
+    example: 'ID', 
+  })
+  @IsString()
+  @IsOptional()
+  bankId?: string;
+
+  @ApiProperty({
+    description: 'No de la tarjeta (en el caso que aplique su uso)',
+    example: 'XXXXXXX123', 
+  })
+  @IsString()
+  @IsOptional()
+  cardNumber?: string;
+  
 }

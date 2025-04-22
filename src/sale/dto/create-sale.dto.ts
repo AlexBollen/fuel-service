@@ -94,6 +94,7 @@ export class CreateSaleDto {
   @IsOptional()
   paymentMethods: PaymentMethodDto[];
 
+  /*
   @ApiProperty({
     type: FidelityCardEmbeddedDto,
     description: 'Datos de la tarjeta de fidelidad',
@@ -107,7 +108,7 @@ export class CreateSaleDto {
   @IsObject()
   @Type(() => FidelityCardEmbeddedDto)
   @IsOptional()
-  fidelityCard?: FidelityCardEmbeddedDto;
+  fidelityCard?: FidelityCardEmbeddedDto;*/
 
   @ApiProperty({
     type: EmployeeEmbeddedDto,
