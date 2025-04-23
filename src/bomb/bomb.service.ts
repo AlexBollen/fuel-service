@@ -63,14 +63,15 @@ export class BombService {
 
   // Function to update a bomb status
   async updateStatus(bombId: string, status: number): Promise<Bomb> {
-    const bomb = await this.bombModel.findOne({ bombId });
+    const bomb = await this.bombModel.findOneAndUpdate(
+      { bombId },
+      { status },
+      { new: true },
+    );
 
     if (!bomb) throw new NotFoundException('Bomba no encontrada');
 
-    bomb.status = status;
-    await bomb.save();
-
-    // Emit WebSocket event in real time
+    // Emit event by websocket with the new status
     this.bombGateway.sendStatusUpdate(bombId, status);
 
     return bomb;
