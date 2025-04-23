@@ -277,7 +277,7 @@ export class SaleService {
     const bomb = await this.bombService.findOne(bombId);
     if (!bomb) throw new Error('Bomba no encontrada');
 
-    const previousState = bomb.status;
+    const previousState = 2;
 
     await this.bombService.pumpFuel(bombId, {
       status: 3,
