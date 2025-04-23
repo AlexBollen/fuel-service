@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import { BombService } from 'src/bomb/bomb.service';
 import { FuelTypesService } from 'src/fuel-types/fuel-types.service';
-import { Types, Decimal128 } from 'mongoose';
+import { Types } from 'mongoose';
 import { SERVICIO_PAGOS, SERVICIO_ADMINISTRACION } from 'src/constants/urls';
 import { GeneralDepositService } from 'src/general-deposit/general-deposit.service';
 
@@ -34,8 +34,7 @@ export class SaleService {
       });
 
       let suscesfully = true;
-      let servedQuantityBomb: Types.Decimal128 =
-        Types.Decimal128.fromString('0.0');
+      let servedQuantityBomb: number = 0.0;
 
       if (!newSale.bomb.bombNumber) {
         const bomb = await this.bombService.findOne(newSale.bomb.bombId);
@@ -53,9 +52,7 @@ export class SaleService {
 
         if (fuel) {
           newSale.fuel.fuelName = fuel.fuelName;
-          newSale.fuel.salePriceGalon = Types.Decimal128.fromString(
-            fuel.salePriceGalon.toString(),
-          );
+          newSale.fuel.salePriceGalon = fuel.salePriceGalon;
         } else {
           throw new InternalServerErrorException('Bomba no encontrada');
         }
@@ -66,25 +63,15 @@ export class SaleService {
           'Se necesita el total de la venta o la cantidad consumida de combustible',
         );
       } else if (!newSale.amount) {
-        newSale.amount = Types.Decimal128.fromString(
-          (
-            parseFloat(newSale.consumedQuantity.toString()) *
-            parseFloat(newSale.fuel.salePriceGalon.toString())
-          ).toString(),
-        );
+        newSale.amount = newSale.consumedQuantity * newSale.fuel.salePriceGalon;
       } else if (!newSale.consumedQuantity) {
-        newSale.consumedQuantity = Types.Decimal128.fromString(
-          (
-            parseFloat(newSale.amount.toString()) /
-            parseFloat(newSale.fuel.salePriceGalon.toString())
-          ).toString(),
-        );
+        newSale.consumedQuantity = newSale.amount / newSale.fuel.salePriceGalon;
       }
 
-      let deposit = await this.generalDespositService.findOne(1);
+      //let deposit = await this.generalDespositService.findOne(1);
       let depositQuantity = 0; // deposit.actualQuantity
       if (depositQuantity) {
-        let afterQuantity = 1; //depositQuantity - newSale.consumedQuantity
+        let afterQuantity = 10000; //depositQuantity - newSale.consumedQuantity
         if (afterQuantity <= 0.0) {
           throw new InternalServerErrorException(
             `No se pudo completar la venta: No hay suficiente cantidad de combustible en el deposito general`,
@@ -200,21 +187,14 @@ export class SaleService {
         suscesfully = false;
       }
 
-      
+      const actualQuantityServed: number =
+        servedQuantityBomb + newSale.consumedQuantity;
 
-        const cantidad1= depositQuantity;
-        const cantidad2: Types.Decimal128 = newSale.consumedQuantity;
-
-        const actualQuantity: number = parseFloat(cantidad1.toString()) + parseFloat(cantidad2.toString());
-
-
-      // let actualQuantityBomb = Types.Decimal128.fromString(result.toString());
-
-      await this.changePumpState(newSale.bomb.bombId, actualQuantity  )
-
-      /*this.bombService.update(newSale.bomb.bombId, {
-        servedQuantity: servedQuantityBomb + newSale.consumedQuantity
-      })*/
+      await this.changePumpState(
+        newSale.bomb.bombId,
+        newSale.consumedQuantity,
+        actualQuantityServed,
+      );
 
       /*
       const capacity = this.generalDepositService.capacity()
@@ -233,7 +213,6 @@ export class SaleService {
       //return await newSale.save();
       return newSale;
     } catch (error) {
-      console.error('Error en createSale:', error);
       throw new InternalServerErrorException(
         `No se pudo completar la venta: ${error.message}`,
       );
@@ -273,12 +252,28 @@ export class SaleService {
       .findByIdAndUpdate({ saleId: saleId }, { status: 0 }, { new: true })
       .exec();
 
+    if (sale.billNumber) {
+      try {
+        await axios.delete(
+          `${SERVICIO_PAGOS}/transaccion/anular/${sale.billNumber}`,
+        );
+      } catch (error) {
+        throw new InternalServerErrorException(
+          `No se pudo eliminar la factura y la venta ${error.message}`,
+        );
+      }
+    }
+
     if (!sale)
       throw new NotFoundException(`Venta con ID ${saleId} no encontrada.`);
     return `Venta con ID ${saleId} eliminada correctamente`;
   }
 
-  async changePumpState(bombId: string, servedQuantityBomb?: number) {
+  async changePumpState(
+    bombId: string,
+    consumedQuantity: number,
+    servedQuantityBomb?: number,
+  ) {
     const bomb = await this.bombService.findOne(bombId);
     if (!bomb) throw new Error('Bomba no encontrada');
 
@@ -289,12 +284,13 @@ export class SaleService {
       servedQuantity: servedQuantityBomb,
     });
 
-    // 5 seconds later
+    const duration = 50000 * consumedQuantity; // Duration per galon: 5 seconds
+
     setTimeout(async () => {
       bomb.status = previousState;
       await this.bombService.pumpFuel(bombId, {
         status: previousState,
       });
-    }, 5000); // 5000 ms = 5 seconds
+    }, duration);
   }
 }

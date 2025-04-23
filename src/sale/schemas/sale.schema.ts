@@ -16,11 +16,11 @@ export class Sale {
   @Prop({ type: String, required: true })
   fuelSaleId: string;
 
-  @Prop({ type: Types.Decimal128, required: false })
-  amount?: Types.Decimal128;
+  @Prop({ type: Number, required: false })
+  amount?: number;
 
-  @Prop({ type: Types.Decimal128, required: false })
-  consumedQuantity?: Types.Decimal128;
+  @Prop({ type: Number, required: false })
+  consumedQuantity?: number;
 
   @Prop({ type: CustomerEmbedded, required: false })
   customer?: CustomerEmbedded;

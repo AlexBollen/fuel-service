@@ -6,11 +6,11 @@ export class FidelityCardEmbedded {
   @Prop({ type: String, required: true })
   fidelityCardId: string;
 
-  @Prop({ type: Types.Decimal128, required: false })
-  earnedPoints?: Types.Decimal128;
+  @Prop({ type: Number, required: false })
+  earnedPoints?: number;
 
-  @Prop({ type: Types.Decimal128, required: false })
-  lostPoints?: Types.Decimal128;
+  @Prop({ type: Number, required: false })
+  lostPoints?: number;
 }
 
 export const FidelityCardEmbeddedSchema =

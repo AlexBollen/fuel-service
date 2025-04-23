@@ -1,5 +1,4 @@
-import { IsString, Min, IsDecimal, IsOptional } from 'class-validator';
-import { Types } from 'mongoose';
+import { IsString, Min, IsDecimal, IsOptional, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class PaymentMethodDto {
@@ -23,9 +22,8 @@ export class PaymentMethodDto {
     description: 'Monto pagado con ese método de pago',
     example: '100.00',
   })
-  @IsDecimal({ decimal_digits: '1,2' })
-  @IsString()
-  amount: string;
+  @IsNumber()
+  amount: number;
 
   @ApiProperty({
     description: 'Id del banco',

@@ -1,5 +1,4 @@
-import { IsString, IsDecimal, IsOptional } from 'class-validator';
-import { Types } from 'mongoose';
+import { IsString, IsDecimal, IsOptional, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class FuelEmbeddedDto {
@@ -22,9 +21,9 @@ export class FuelEmbeddedDto {
     description: 'Precio del combustible por galón',
     example: '27.09',
   })
-  @IsDecimal({ decimal_digits: '1,2' })
+
   @IsOptional()
-  @IsString()
-  salePriceGalon?: string;
+  @IsNumber()
+  salePriceGalon?: number;
 }
 

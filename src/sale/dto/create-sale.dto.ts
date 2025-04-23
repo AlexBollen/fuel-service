@@ -8,7 +8,6 @@ import {
   IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { PaymentMethodDto } from './paymenth-method-embedded.dto';
 import { EmployeeEmbeddedDto } from './employee-embedded.dto';
@@ -23,19 +22,17 @@ export class CreateSaleDto {
     description: 'Total de la venta',
     example: '100.00',
   })
-  @IsDecimal({ decimal_digits: '1,2' })
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  amount?: string;
+  amount?: number;
 
   @ApiProperty({
     description: 'Cantidad consumida',
     example: '5.0',
   })
-  @IsDecimal({ decimal_digits: '1,2' })
   @IsString()
   @IsOptional()
-  consumedQuantity?: string;
+  consumedQuantity?: number;
 
   @ApiProperty({
     type: CustomerEmbeddedDto,
