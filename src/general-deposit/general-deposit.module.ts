@@ -19,6 +19,6 @@ import { Sale, SaleSchema } from 'src/sale/schemas/sale.schema';
       
     ]),
   ],
-  exports: [MongooseModule],
+  exports: [MongooseModule, GeneralDepositService],
 })
 export class GeneralDepositModule {}

@@ -5,12 +5,14 @@ import { Sale, SaleSchema } from './schemas/sale.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BombModule } from 'src/bomb/bomb.module';
 import { FuelTypesModule } from 'src/fuel-types/fuel-types.module';
+import { GeneralDepositModule } from 'src/general-deposit/general-deposit.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Sale.name, schema: SaleSchema }]),
     forwardRef(() => BombModule),
     forwardRef(() => FuelTypesModule),
+    GeneralDepositModule
   
   ],
   controllers: [SaleController],

@@ -13,8 +13,9 @@ import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import { BombService } from 'src/bomb/bomb.service';
 import { FuelTypesService } from 'src/fuel-types/fuel-types.service';
-import { Types } from 'mongoose';
+import { Types, Decimal128 } from 'mongoose';
 import { SERVICIO_PAGOS, SERVICIO_ADMINISTRACION } from 'src/constants/urls';
+import { GeneralDepositService } from 'src/general-deposit/general-deposit.service';
 
 @Injectable()
 export class SaleService {
@@ -22,6 +23,7 @@ export class SaleService {
     @InjectModel(Sale.name) private saleModel: Model<SaleDocument>,
     private readonly bombService: BombService,
     private readonly fuelTypesService: FuelTypesService,
+    private readonly generalDespositService: GeneralDepositService,
   ) {}
 
   async create(createSaleDto: CreateSaleDto): Promise<Sale> {
@@ -32,14 +34,15 @@ export class SaleService {
       });
 
       let suscesfully = true;
-      let servedQuantityBomb = 0;
+      let servedQuantityBomb: Types.Decimal128 =
+        Types.Decimal128.fromString('0.0');
 
       if (!newSale.bomb.bombNumber) {
         const bomb = await this.bombService.findOne(newSale.bomb.bombId);
 
         if (bomb) {
           newSale.bomb.bombNumber = bomb.bombNumber;
-          //servedQuantityBomb = bomb.servedQuantity;
+          servedQuantityBomb = bomb.servedQuantity;
         } else {
           throw new InternalServerErrorException('Bomba no encontrada');
         }
@@ -67,15 +70,26 @@ export class SaleService {
           (
             parseFloat(newSale.consumedQuantity.toString()) *
             parseFloat(newSale.fuel.salePriceGalon.toString())
-          ).toFixed(2),
+          ).toString(),
         );
       } else if (!newSale.consumedQuantity) {
-        newSale.amount = Types.Decimal128.fromString(
+        newSale.consumedQuantity = Types.Decimal128.fromString(
           (
             parseFloat(newSale.amount.toString()) /
             parseFloat(newSale.fuel.salePriceGalon.toString())
-          ).toFixed(2),
+          ).toString(),
         );
+      }
+
+      let deposit = await this.generalDespositService.findOne(1);
+      let depositQuantity = 0; // deposit.actualQuantity
+      if (depositQuantity) {
+        let afterQuantity = 1; //depositQuantity - newSale.consumedQuantity
+        if (afterQuantity <= 0.0) {
+          throw new InternalServerErrorException(
+            `No se pudo completar la venta: No hay suficiente cantidad de combustible en el deposito general`,
+          );
+        }
       }
 
       if (newSale.paymentMethods) {
@@ -85,8 +99,8 @@ export class SaleService {
               const response = await axios.get(
                 `${SERVICIO_PAGOS}/metodos/obtener/${methodItem.paymentId}`,
               );
-              if (response.data.Metodo) {
-                methodItem.method = response.data.Metodo;
+              if (response.data.metodo) {
+                methodItem.method = response.data.metodo;
               } else {
                 suscesfully = false;
               }
@@ -120,9 +134,9 @@ export class SaleService {
       }
 
       const metodosPago = createSaleDto.paymentMethods.map((pm) => ({
-        IdMetodo: pm.paymentId,
+        idMetodo: pm.paymentId,
         Monto: pm.amount,
-        ...(pm.bankId && { IdBanco: pm.bankId }),
+        ...(pm.bankId && { idBanco: pm.bankId }),
         ...(pm.cardNumber && { Notarjeta: pm.cardNumber }),
       }));
 
@@ -130,7 +144,7 @@ export class SaleService {
         const responseTransaction = await axios.post(
           `${SERVICIO_PAGOS}/transaccion/crear/`,
           {
-            Nit: newSale.customer.nit,
+            nit: newSale.customer.nit,
             idCaja: '',
             idServicioTransaccion: 0,
             detalle: [
@@ -140,42 +154,63 @@ export class SaleService {
                 precio: newSale.fuel.salePriceGalon,
               },
             ],
-            MetodosPago: metodosPago,
+            metodosPago: metodosPago,
           },
         );
 
         if (newSale.customer.nit != 'CF') {
-          if (responseTransaction.data.Factura.Cliente) {
-            const customer = responseTransaction.data.Factura.Cliente;
-            if (customer.IdCliente)
-              newSale.customer.customerId = customer.IdCliente;
+          if (responseTransaction.data.factura.cliente) {
+            const customer = responseTransaction.data.factura.cliente;
+            if (customer.idCliente)
+              newSale.customer.customerId = customer.idCliente;
 
-            if (customer?.NombreCliente || customer?.ApellidoCliente) {
-              const nombre = customer?.NombreCliente ?? '';
-              const apellido = customer?.ApellidoCliente ?? '';
+            if (customer?.nombreCliente || customer?.apellidoCliente) {
+              const nombre = customer?.nombreCliente ?? '';
+              const apellido = customer?.apellidoCliente ?? '';
               newSale.customer.customerName = `${nombre} ${apellido}`.trim();
+            } else {
+              suscesfully = false;
             }
           }
         }
 
         const transaction = responseTransaction.data;
-        if (transaction.IdTransaccion) {
-          //newSale.idTransaction = transaction.IdTransaccion
+
+        if (transaction.idTransaccion) {
+          newSale.transactionId = transaction.idTransaccion;
+        } else {
+          suscesfully = false;
         }
-        if (transaction.NoTransaccion) {
-          //newSale.noTransaction = transaction.IdTransaccion
+        if (transaction.noTransaccion) {
+          newSale.transactionNumber = transaction.noTransaccion;
+        } else {
+          suscesfully = false;
         }
-        if (transaction.Factura.NoFactura) {
-          //newSale.noBill = transaction.Factura.NoFactura
+        if (transaction.noAutorizacion) {
+          newSale.authorizationNumber = transaction.noAutorizacion;
+        } else {
+          suscesfully = false;
+        }
+        if (transaction.factura?.noFactura) {
+          newSale.billNumber = transaction.factura.noFactura;
+        } else {
+          suscesfully = false;
         }
       } catch (_) {
         suscesfully = false;
       }
 
-      //await this.bombService.update(newSale.bomb.bombId, {
-      // status = 3,
-      // servedQuantity: servedQuantityBomb + newSale.consumedQuantity
-      // });
+      
+
+        const cantidad1= depositQuantity;
+        const cantidad2: Types.Decimal128 = newSale.consumedQuantity;
+
+        const actualQuantity: number = parseFloat(cantidad1.toString()) + parseFloat(cantidad2.toString());
+
+
+      // let actualQuantityBomb = Types.Decimal128.fromString(result.toString());
+
+      await this.changePumpState(newSale.bomb.bombId, actualQuantity  )
 
       /*this.bombService.update(newSale.bomb.bombId, {
         servedQuantity: servedQuantityBomb + newSale.consumedQuantity
@@ -241,5 +276,25 @@ export class SaleService {
     if (!sale)
       throw new NotFoundException(`Venta con ID ${saleId} no encontrada.`);
     return `Venta con ID ${saleId} eliminada correctamente`;
+  }
+
+  async changePumpState(bombId: string, servedQuantityBomb?: number) {
+    const bomb = await this.bombService.findOne(bombId);
+    if (!bomb) throw new Error('Bomba no encontrada');
+
+    const previousState = bomb.status;
+
+    await this.bombService.pumpFuel(bombId, {
+      status: 3,
+      servedQuantity: servedQuantityBomb,
+    });
+
+    // 5 seconds later
+    setTimeout(async () => {
+      bomb.status = previousState;
+      await this.bombService.pumpFuel(bombId, {
+        status: previousState,
+      });
+    }, 5000); // 5000 ms = 5 seconds
   }
 }

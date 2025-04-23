@@ -46,6 +46,18 @@ export class Sale {
 
   @Prop({ type: Number, required: false })
   status?: number;
+
+  @Prop({ type: String, required: false })
+  transactionId?: string;
+
+  @Prop({ type: Number, required: false })
+  transactionNumber?: number;
+
+  @Prop({ type: String, required: false })
+  authorizationNumber?: string;
+
+  @Prop({ type: String, required: false })
+  billNumber?: string;
 }
 
 // Genera el esquema automáticamente y ya no se tiene que definir manualmente
