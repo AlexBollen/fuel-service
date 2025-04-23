@@ -284,7 +284,7 @@ export class SaleService {
       servedQuantity: servedQuantityBomb,
     });
 
-    const duration = 50000 * consumedQuantity; // Duration per galon: 5 seconds
+    const duration = Math.floor(50000 * consumedQuantity); // Duration per galon: 5 seconds
 
     setTimeout(async () => {
       bomb.status = previousState;
