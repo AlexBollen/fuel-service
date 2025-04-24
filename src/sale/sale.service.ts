@@ -277,20 +277,21 @@ export class SaleService {
     const bomb = await this.bombService.findOne(bombId);
     if (!bomb) throw new Error('Bomba no encontrada');
 
-    const previousState = 2;
+    
 
     await this.bombService.pumpFuel(bombId, {
       status: 3,
       servedQuantity: servedQuantityBomb,
     });
 
-    const duration = Math.floor(50000 * consumedQuantity); // Duration per galon: 5 seconds
+    const duration = Math.floor(5000 * consumedQuantity); // Duration per galon: 5 seconds
 
+    console.log(duration)
     setTimeout(async () => {
-      bomb.status = previousState;
       await this.bombService.pumpFuel(bombId, {
-        status: previousState,
+        status: 2,
       });
     }, duration);
+   
   }
 }
