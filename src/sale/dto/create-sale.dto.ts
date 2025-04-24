@@ -19,6 +19,14 @@ import { FidelityCardEmbeddedDto } from './fidelity-card-embedded.dto';
 export class CreateSaleDto {
   
   @ApiProperty({
+    description: 'Determina que tipo de venta es',
+    example: '1',
+  })
+  @IsNumber()
+  type: number;
+  
+
+  @ApiProperty({
     description: 'Total de la venta',
     example: '100.00',
   })
@@ -30,7 +38,7 @@ export class CreateSaleDto {
     description: 'Cantidad consumida',
     example: '5.0',
   })
-  @IsString()
+  @IsNumber()
   @IsOptional()
   consumedQuantity?: number;
 
@@ -127,4 +135,13 @@ export class CreateSaleDto {
   @IsNumber()
   @IsOptional()
   status?: number = 2;
+
+  @ApiProperty({
+    description:
+      'Id de la caja',
+    example: 'ABCD1234',
+  })
+  @IsString()
+  @IsOptional()
+  cashRegisterId?: string;
 }
