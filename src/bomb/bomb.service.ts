@@ -6,10 +6,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
 import { Bomb, BombDocument } from './schemas/bomb.schema';
 import { PumpFuelDto } from './dto/pump-fuel.dto';
+import { BombGateway } from './bomb.gateway';
+
 
 @Injectable()
 export class BombService {
-  constructor(@InjectModel(Bomb.name) private bombModel: Model<BombDocument>) {}
+  constructor(
+    @InjectModel(Bomb.name) private bombModel: Model<BombDocument>,
+    private readonly bombGateway: BombGateway, // Add the gateway to emit events by WebSockets
+  ) {}
 
   async create(createBombDto: CreateBombDto): Promise<Bomb> {
     const newBomb = new this.bombModel({
@@ -68,5 +73,21 @@ export class BombService {
       throw new NotFoundException(`Bomba con ID ${bombId} no encontrada.`);
     }
     return `Se eliminó correctamente la bomba: ${bombId} `;
+  }
+
+  // Function to update a bomb status
+  async updateStatus(bombId: string, status: number): Promise<Bomb> {
+    const bomb = await this.bombModel.findOneAndUpdate(
+      { bombId },
+      { status },
+      { new: true },
+    );
+
+    if (!bomb) throw new NotFoundException('Bomba no encontrada');
+
+    // Emit event by websocket with the new status
+    this.bombGateway.sendStatusUpdate(bombId, status);
+
+    return bomb;
   }
 }

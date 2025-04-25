@@ -5,10 +5,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Bomb, BombSchema } from './schemas/bomb.schema';
 import { SaleModule } from 'src/sale/sale.module';
 import { Sale, SaleSchema } from 'src/sale/schemas/sale.schema';
+import { BombGateway } from './bomb.gateway';
 
 @Module({
   controllers: [BombController],
-  providers: [BombService],
+  providers: [BombService, BombGateway], //Add BombGateway as provider
   imports: [
     MongooseModule.forFeature([
       { name: Bomb.name, schema: BombSchema },

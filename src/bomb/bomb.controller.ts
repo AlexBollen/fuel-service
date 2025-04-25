@@ -11,6 +11,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Alert } from 'src/alert/schemas/alert.schema';
+import { UpdateBombStatusDto } from './dto/update-bomb-status.dto';
 
 @ApiTags('Bombs')
 @Controller('bomb')
@@ -77,7 +78,8 @@ export class BombController {
   @Get('/list/mainteance')
   @ApiOperation({
     summary: 'Listar bombas en mantenimiento',
-    description: 'Obtener solo las bombas que se encuentran en estado de mantenimiento',
+    description:
+      'Obtener solo las bombas que se encuentran en estado de mantenimiento',
   })
   @ApiResponse({
     status: 200,
@@ -156,5 +158,13 @@ export class BombController {
   })
   remove(@Param('bombId') bombId: string) {
     return this.bombService.remove(bombId);
+  }
+
+  @Patch(':bombId/status')
+  async updateBombStatus(
+    @Param('bombId') bombId: string,
+    @Body() body: { status: number },
+  ) {
+    return this.bombService.updateStatus(bombId, body.status);
   }
 }
