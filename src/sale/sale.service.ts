@@ -14,8 +14,9 @@ import { BombService } from 'src/bomb/bomb.service';
 import { FuelTypesService } from 'src/fuel-types/fuel-types.service';
 import { Types } from 'mongoose';
 import { GeneralDepositService } from 'src/general-deposit/general-deposit.service';
-import { apiClientAdministration } from 'src/utils/apiClient';
-import { apiClientPayments } from 'src/utils/apiClient';
+import apiClientAdministration, {
+  apiClientPayments,
+} from 'src/utils/apiClient';
 
 @Injectable()
 export class SaleService {
@@ -87,7 +88,7 @@ export class SaleService {
             newSale.paymentMethods.map(async (methodItem) => {
               try {
                 const response = await apiClientPayments.get(
-                  `/metodos/obtener/${methodItem.paymentId}`,
+                  `metodos/obtener/${methodItem.paymentId}`,
                 );
                 if (response.data.metodo) {
                   methodItem.method = response.data.metodo;
@@ -100,7 +101,6 @@ export class SaleService {
             }),
           );
         }
-        
 
         if (!newSale.customer.nit) {
           newSale.customer.customerName = 'CF';
@@ -108,9 +108,11 @@ export class SaleService {
 
         if (!newSale.createdBy.employeeName) {
           try {
+           
             const employee = await apiClientAdministration.get(
               `/GET/empleados/${newSale.createdBy.employeeId}`,
             );
+
             if (employee.data.empleado) {
               newSale.createdBy.employeeName =
                 employee.data.empleado.nombres +
@@ -119,7 +121,8 @@ export class SaleService {
             } else {
               suscesfully = false;
             }
-          } catch (_) {
+          } catch (error) {
+            console.error(error)
             suscesfully = false;
           }
         }
@@ -133,7 +136,7 @@ export class SaleService {
 
         try {
           const responseTransaction = await apiClientPayments.post(
-            `/transaccion/crear/`,
+            `transaccion/crear/`,
             {
               nit: newSale.customer.nit,
               idCaja: createSaleDto.cashRegisterId,
@@ -220,8 +223,7 @@ export class SaleService {
           //Missing some data
           newSale.status = 2;
         }
-        //return await newSale.save();
-        return newSale;
+        return await newSale.save();
       } catch (error) {
         throw new InternalServerErrorException(
           `No se pudo completar la venta: ${error.message}`,
@@ -259,7 +261,7 @@ export class SaleService {
   }
 
   async findAll(): Promise<Sale[]> {
-    return await this.saleModel.find({ status: 1 }).exec();
+    return await this.saleModel.find({ status: { $in: [1, 2] } }).exec();
   }
 
   async findOne(saleId: string) {
@@ -482,7 +484,6 @@ export class SaleService {
 
     const duration = Math.floor(5000 * consumedQuantity); // Duration per galon: 5 seconds
 
-    console.log(duration);
     setTimeout(async () => {
       await this.bombService.pumpFuel(bombId, {
         status: 2,

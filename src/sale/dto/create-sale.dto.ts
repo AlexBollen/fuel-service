@@ -20,7 +20,7 @@ export class CreateSaleDto {
   
   @ApiProperty({
     description: 'Determina que tipo de venta es',
-    example: '1',
+    example: 1,
   })
   @IsNumber()
   type: number;
@@ -28,7 +28,7 @@ export class CreateSaleDto {
 
   @ApiProperty({
     description: 'Total de la venta',
-    example: '100.00',
+    example: 150.00,
   })
   @IsNumber()
   @IsOptional()
@@ -36,7 +36,7 @@ export class CreateSaleDto {
 
   @ApiProperty({
     description: 'Cantidad consumida',
-    example: '5.0',
+    example: 3.35195530726257,
   })
   @IsNumber()
   @IsOptional()
@@ -61,8 +61,8 @@ export class CreateSaleDto {
     type: BombEmbeddedDto,
     description: 'Datos de la bomba que despachó el combustible',
     example: {
-      bombId: 'BOMB-1',
-      bombNumber: '1',
+      bombId: 'c802afc9-a371-4dd0-a4d2-befdd992bbf3',
+      bombNumber: 1,
     },
   })
   @ValidateNested()
@@ -74,9 +74,9 @@ export class CreateSaleDto {
     type: FuelEmbeddedDto,
     description: 'Datos del combustible que consumió el cliente',
     example: {
-      fuelId: 'DIESEL-1',
-      fuelName: 'Diésel',
-      fuelPriceGalon: '27.09',
+      fuelId: 'a5610883-cc68-4b51-b7f7-4f0ab86907bb',
+      fuelName: 'Super',
+      fuelPriceGalon: 44.75,
     },
   })
   @ValidateNested()
@@ -90,7 +90,7 @@ export class CreateSaleDto {
     example: {
       paymentId: 'XXXXXXXX',
       methood: 'Efectivo',
-      amount: '100.00',
+      amount: 150.00,
     },
   })
   @IsArray()

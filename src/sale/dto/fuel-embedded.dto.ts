@@ -4,14 +4,14 @@ import { ApiProperty } from '@nestjs/swagger';
 export class FuelEmbeddedDto {
   @ApiProperty({
     description: 'Id del tipo de combustible',
-    example: 'DIESEL-1',
+    example: 'a5610883-cc68-4b51-b7f7-4f0ab86907bb',
   })
   @IsString()
   fuelId: string;
 
   @ApiProperty({
     description: 'Nombre del tipo de combustible',
-    example: 'Diésel',
+    example: 'Super',
   })
   @IsString()
   @IsOptional()
@@ -19,7 +19,7 @@ export class FuelEmbeddedDto {
 
   @ApiProperty({
     description: 'Precio del combustible por galón',
-    example: '27.09',
+    example: 44.75,
   })
 
   @IsOptional()
