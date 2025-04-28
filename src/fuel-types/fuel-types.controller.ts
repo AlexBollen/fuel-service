@@ -82,7 +82,7 @@ export class FuelTypesController {
     return this.fuelTypesService.update(fuelId, updateFuelTypeDto);
   }
 
-  @Delete('/delete/:fuelId')
+  @Patch('/delete/:fuelId')
   @ApiOperation({
     summary: 'Desactivar un tipo de gasolina por ID (Borrado lógico)',
   })

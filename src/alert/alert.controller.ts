@@ -4,7 +4,7 @@ import {
   Post,
   Body,
   Param,
-  Put,
+  Patch,
 } from '@nestjs/common';
 import { AlertService } from './alert.service';
 import { CreateAlertDto } from './dto/create-alert.dto';
@@ -73,7 +73,7 @@ export class AlertController {
     return this.alertService.findOne(alertId);
   }
 
-  @Put('/delete/:alertId')
+  @Patch('/delete/:alertId')
   @ApiOperation({
     summary: 'Eliminar una alerta',
     description: 'Este endpoint elimina lógicamente una alerta específica',
