@@ -1,26 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 import { CreateGeneralDepositDto } from './dto/create-general-deposit.dto';
 import { UpdateGeneralDepositDto } from './dto/update-general-deposit.dto';
+import { GeneralDeposit, GeneralDepositDocument } from './schemas/general-deposit.schema';
 
 @Injectable()
 export class GeneralDepositService {
-  create(createGeneralDepositDto: CreateGeneralDepositDto) {
-    return 'This action adds a new generalDeposit';
+  constructor(
+    @InjectModel(GeneralDeposit.name) private generalDepositModel: Model<GeneralDepositDocument>,
+  ) {}
+
+  async create(createGeneralDepositDto: CreateGeneralDepositDto): Promise<GeneralDeposit> {
+    const newGeneralDeposit = new this.generalDepositModel({
+      ...createGeneralDepositDto,
+      depositId: uuidv4(),
+    });
+    return await newGeneralDeposit.save();
   }
 
-  findAll() {
-    return `This action returns all generalDeposit`;
+  async findAll(): Promise<GeneralDeposit[]> {
+    return await this.generalDepositModel.find({ status: true }).exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} generalDeposit`;
+  async findOne(generalDepositId: string): Promise<GeneralDeposit> {
+    const deposit = await this.generalDepositModel
+      .findOne({ generalDepositId: generalDepositId })
+      .exec();
+
+    if (!deposit) {
+      throw new NotFoundException(`Depósito con ID ${generalDepositId} no encontrado.`);
+    }
+    return deposit;
   }
 
-  update(id: number, updateGeneralDepositDto: UpdateGeneralDepositDto) {
-    return `This action updates a #${id} generalDeposit`;
+  async update(generalDepositId: string, updateGeneralDepositDto: UpdateGeneralDepositDto): Promise<GeneralDeposit> {
+    const updatedDeposit = await this.generalDepositModel
+      .findOneAndUpdate(
+        { generalDepositId: generalDepositId },
+        { ...updateGeneralDepositDto },
+        { new: true },
+      )
+      .exec();
+
+    if (!updatedDeposit) {
+      throw new NotFoundException(`Depósito con ID ${generalDepositId} no encontrado.`);
+    }
+    return updatedDeposit;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} generalDeposit`;
+  async remove(generalDepositId: string): Promise<string> {
+    const deposit = await this.generalDepositModel
+      .findOneAndUpdate(
+        { generalDepositId: generalDepositId },
+        { status: false },
+        { new: true },
+      )
+      .exec();
+
+    if (!deposit) {
+      throw new NotFoundException(`Depósito con ID ${generalDepositId} no encontrado.`);
+    }
+    return `Depósito con ID ${generalDepositId} eliminado correctamente.`;
   }
 }
