@@ -69,7 +69,7 @@ export class SaleService {
         newSale.consumedQuantity = newSale.amount / newSale.fuel.salePriceGalon;
       }
 
-      //let deposit = await this.generalDespositService.findOne(1);
+      let deposit = await this.generalDespositService(1);
       let depositQuantity = 0; // deposit.actualQuantity
       if (depositQuantity) {
         let afterQuantity = 10000; //depositQuantity - newSale.consumedQuantity
@@ -267,6 +267,8 @@ export class SaleService {
           }
         } catch (_) {}
       }
+
+      //const generalDeposit = await this.generalDespositService.findOne()
 
       newSale.status = 3;
 
@@ -491,6 +493,25 @@ export class SaleService {
         updateSaleDto.amount =
           updateSaleDto.consumedQuantity * sale.fuel.salePriceGalon;
         updateSaleDto.status = 4;
+
+        let servedQuantityBomb: number;
+
+        if (!sale.bomb.bombNumber) {
+          const bomb = await this.bombService.findOne(sale.bomb.bombId);
+
+          if (bomb) {
+            sale.bomb.bombNumber = bomb.bombNumber;
+            servedQuantityBomb = bomb.servedQuantity;
+          } else {
+            throw new InternalServerErrorException('Bomba no encontrada');
+          }
+        }
+
+        const actualQuantity =
+          servedQuantityBomb + updateSaleDto.consumedQuantity;
+
+        await this.bombService.updateStatus(sale.bomb.bombId, 2, actualQuantity);
+
         return this.saleModel
           .findOneAndUpdate(
             { fuelSaleId: saleId },
@@ -711,55 +732,18 @@ export class SaleService {
     const bomb = await this.bombService.findOne(bombId);
     if (!bomb) throw new Error('Bomba no encontrada');
 
-    await this.bombService.pumpFuel(bombId, {
-      status: 3,
-      servedQuantity: servedQuantityBomb,
-    });
+    await this.bombService.updateStatus(bombId, 2, servedQuantityBomb);
 
     const duration = Math.floor(5000 * consumedQuantity); // Duration per galon: 5 seconds
 
     setTimeout(async () => {
-      await this.bombService.pumpFuel(bombId, {
-        status: 2,
-      });
+      let newStatus = 0;
+      if (servedQuantityBomb > 1000) {
+        newStatus = 4;
+      } else {
+        newStatus = 2;
+      }
+      await this.bombService.updateStatus(bombId, newStatus);
     }, duration);
   }
-}
-
-function hasEssentialInfo(
-  sale: SaleDocument,
-  updateSaleDto: UpdateSaleDto,
-): boolean {
-  const requiredFields = [
-    'billNumber',
-    'transactionId',
-    'transactionNumber',
-    'authorizationNumber',
-    'customer.nit',
-    'createdBy.name',
-    'paymentMethod.name',
-  ];
-
-  return requiredFields.every((field) =>
-    Boolean(getValue(sale, field) ?? getValue(updateSaleDto, field)),
-  );
-}
-
-function getValue(obj: any, path: string): any {
-  const keys = path.split('.');
-  let current = obj;
-
-  for (const key of keys) {
-    if (Array.isArray(current)) {
-      current = current.every(
-        (item) => item?.[key] !== undefined && item?.[key] !== null,
-      )
-        ? true
-        : undefined;
-    } else {
-      current = current?.[key];
-    }
-  }
-
-  return current;
 }

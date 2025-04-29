@@ -75,19 +75,25 @@ export class BombService {
     return `Se eliminó correctamente la bomba: ${bombId} `;
   }
 
-  // Function to update a bomb status
-  async updateStatus(bombId: string, status: number): Promise<Bomb> {
+  // Function to update a bomb status and optionally update the servedQuantity
+  async updateStatus(bombId: string, status: number, servedQuantity?: number): Promise<Bomb> {
+    const updateData: any = { status };
+    
+    if (servedQuantity !== undefined) {
+      updateData.servedQuantity = servedQuantity;
+    }
+  
     const bomb = await this.bombModel.findOneAndUpdate(
       { bombId },
-      { status },
-      { new: true },
+      updateData,
+      { new: true }, // options
     );
-
+  
     if (!bomb) throw new NotFoundException('Bomba no encontrada');
-
+  
     // Emit event by websocket with the new status
     this.bombGateway.sendStatusUpdate(bombId, status);
-
+  
     return bomb;
   }
 }
