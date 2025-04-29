@@ -1,15 +1,14 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
 import { GeneralDepositService } from './general-deposit.service';
 import { CreateGeneralDepositDto } from './dto/create-general-deposit.dto';
 import { UpdateGeneralDepositDto } from './dto/update-general-deposit.dto';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { GeneralDeposit } from './schemas/general-deposit.schema';
 
 @ApiTags('General Deposits')
@@ -70,6 +69,29 @@ export class GeneralDepositController {
     return this.generalDepositService.findOne(id);
   }
 
+  @Get('/list/fuel/:fuelId')
+  @ApiOperation({
+    summary: 'Obtener un depósito general por ID de tipo de combustible',
+    description:
+      'Este endpoint lista un depósito general específico en base al tipo de combustible asignado',
+  })
+  @ApiParam({
+    name: 'fuelId',
+    description: 'ID del combustible de depósito general a encontrar',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Depósito general encontrado',
+    type: GeneralDeposit,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Depósito general no encontrado',
+  })
+  findByFuelType(@Param('fuelId') id: string) {
+    return this.generalDepositService.findByFuelType(id);
+  }
+
   @Patch('/update/:generalDepositId')
   @ApiOperation({
     summary: 'Editar una bomba',
@@ -99,7 +121,8 @@ export class GeneralDepositController {
   @Patch('/delete/:generalDepositId')
   @ApiOperation({
     summary: 'Eliminar una bomba',
-    description: 'Este endpoint elimina lógicamente un depósito general específica',
+    description:
+      'Este endpoint elimina lógicamente un depósito general específica',
   })
   @ApiParam({
     name: 'generalDepositId',
