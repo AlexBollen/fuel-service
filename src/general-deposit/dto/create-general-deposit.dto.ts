@@ -7,8 +7,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { FuelEmbedded } from 'src/sale/schemas/fuel.schema';
-import { EmployeeEmbedded } from 'src/sale/schemas/employee.schema';
 import { EmployeeEmbeddedDto } from 'src/sale/dto/employee-embedded.dto';
 import { FuelEmbeddedDto } from 'src/sale/dto/fuel-embedded.dto';
 
@@ -50,9 +48,10 @@ export class CreateGeneralDepositDto {
       employeeName: 'Santiago López',
     },
   })
+  @IsOptional()
   @ValidateNested()
   @Type(() => EmployeeEmbeddedDto)
-  createdBy: EmployeeEmbeddedDto;
+  createdBy?: EmployeeEmbeddedDto;
 
   @ApiProperty({ description: 'Estado del depósito general', example: true })
   @IsOptional()

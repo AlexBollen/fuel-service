@@ -20,8 +20,8 @@ export class GeneralDeposit {
   @Prop({ type: FuelEmbedded, required: true })
   fuel: FuelEmbedded;
 
-  @Prop({ type: EmployeeEmbedded, required: true })
-  createdBy: EmployeeEmbedded;
+  @Prop({ type: EmployeeEmbedded, required: false })
+  createdBy?: EmployeeEmbedded;
 
   @Prop({ type: EmployeeEmbedded, required: false })
   updatedBy?: EmployeeEmbedded;
