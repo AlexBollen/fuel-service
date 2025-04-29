@@ -1,8 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { SaleService } from './sale.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags} from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Sale } from './schemas/sale.schema';
 
 @ApiTags('Sales')
@@ -21,8 +35,17 @@ export class SaleController {
     description: 'Venta generada correctamente',
     type: Sale,
   })
+  @ApiResponse({
+    status: 500,
+    description: 'Ocurrió un error al generar la venta',
+    type: Sale,
+  })
   create(@Body() createSaleDto: CreateSaleDto) {
-    return this.saleService.create(createSaleDto);
+    if (createSaleDto.type == 1) {
+      return this.saleService.create(createSaleDto);
+    } else if (createSaleDto.type == 2) {
+      return this.saleService.createFullTankSale(createSaleDto);
+    }
   }
 
   @Get('/list')
@@ -61,7 +84,6 @@ export class SaleController {
     return this.saleService.findOne(fuelSaleId);
   }
 
-
   @Patch('/update/:fuelSaleId')
   @ApiOperation({
     summary: 'Editar una venta',
@@ -81,8 +103,17 @@ export class SaleController {
     status: 404,
     description: 'Venta no encontrada',
   })
-  update(@Param('fuelSaleId') fuelSaleId: string, @Body() updateSaleDto: UpdateSaleDto): Promise<Sale> {
-    return this.saleService.update(fuelSaleId, updateSaleDto);
+  update(
+    @Param('fuelSaleId') fuelSaleId: string,
+    @Body() updateSaleDto: UpdateSaleDto,
+  ): Promise<Sale> {
+    if(updateSaleDto.type==1){
+      return this.saleService.update(fuelSaleId, updateSaleDto);
+    }
+    else{
+      return this.saleService.updateSaleFullTank(fuelSaleId, updateSaleDto)
+    }
+    
   }
 
   @Patch('/delete/:fuelSaleId')

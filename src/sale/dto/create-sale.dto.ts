@@ -3,7 +3,7 @@ import {
   ValidateNested,
   IsArray,
   IsNumber,
-  IsDecimal,
+  IsIn,
   IsObject,
   IsOptional,
 } from 'class-validator';
@@ -23,6 +23,7 @@ export class CreateSaleDto {
     example: 1,
   })
   @IsNumber()
+  @IsIn([1, 2])
   type: number;
   
 
@@ -97,7 +98,7 @@ export class CreateSaleDto {
   @ValidateNested({ each: true })
   @Type(() => PaymentMethodDto)
   @IsOptional()
-  paymentMethods: PaymentMethodDto[];
+  paymentMethods?: PaymentMethodDto[];
 
   /*
   @ApiProperty({

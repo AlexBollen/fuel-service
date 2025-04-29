@@ -28,236 +28,255 @@ export class SaleService {
   ) {}
 
   async create(createSaleDto: CreateSaleDto): Promise<Sale> {
-    if (createSaleDto.type == 1) {
-      try {
-        const newSale = new this.saleModel({
-          ...createSaleDto,
-          fuelSaleId: uuidv4(),
-        });
+    try {
+      const newSale = new this.saleModel({
+        ...createSaleDto,
+        fuelSaleId: uuidv4(),
+      });
 
-        let suscesfully = true;
-        let servedQuantityBomb: number = 0.0;
+      let suscesfully = true;
+      let servedQuantityBomb: number = 0.0;
 
-        if (!newSale.bomb.bombNumber) {
-          const bomb = await this.bombService.findOne(newSale.bomb.bombId);
+      if (!newSale.bomb.bombNumber) {
+        const bomb = await this.bombService.findOne(newSale.bomb.bombId);
 
-          if (bomb) {
-            newSale.bomb.bombNumber = bomb.bombNumber;
-            servedQuantityBomb = bomb.servedQuantity;
-          } else {
-            throw new InternalServerErrorException('Bomba no encontrada');
-          }
+        if (bomb) {
+          newSale.bomb.bombNumber = bomb.bombNumber;
+          servedQuantityBomb = bomb.servedQuantity;
+        } else {
+          throw new InternalServerErrorException('Bomba no encontrada');
         }
+      }
 
-        if (!newSale.fuel.fuelName || !newSale.fuel.salePriceGalon) {
-          const fuel = await this.fuelTypesService.findOne(newSale.fuel.fuelId);
+      if (!newSale.fuel.fuelName || !newSale.fuel.salePriceGalon) {
+        const fuel = await this.fuelTypesService.findOne(newSale.fuel.fuelId);
 
-          if (fuel) {
-            newSale.fuel.fuelName = fuel.fuelName;
-            newSale.fuel.salePriceGalon = fuel.salePriceGalon;
-          } else {
-            throw new InternalServerErrorException('Bomba no encontrada');
-          }
+        if (fuel) {
+          newSale.fuel.fuelName = fuel.fuelName;
+          newSale.fuel.salePriceGalon = fuel.salePriceGalon;
+        } else {
+          throw new InternalServerErrorException('Bomba no encontrada');
         }
+      }
 
-        if (!newSale.amount && !newSale.consumedQuantity) {
-          throw new BadRequestException(
-            'Se necesita el total de la venta o la cantidad consumida de combustible',
+      if (!newSale.amount && !newSale.consumedQuantity) {
+        throw new BadRequestException(
+          'Se necesita el total de la venta o la cantidad consumida de combustible',
+        );
+      } else if (!newSale.amount) {
+        newSale.amount = newSale.consumedQuantity * newSale.fuel.salePriceGalon;
+      } else if (!newSale.consumedQuantity) {
+        newSale.consumedQuantity = newSale.amount / newSale.fuel.salePriceGalon;
+      }
+
+      //let deposit = await this.generalDespositService.findOne(1);
+      let depositQuantity = 0; // deposit.actualQuantity
+      if (depositQuantity) {
+        let afterQuantity = 10000; //depositQuantity - newSale.consumedQuantity
+        if (afterQuantity <= 0.0) {
+          throw new InternalServerErrorException(
+            `No se pudo completar la venta: No hay suficiente cantidad de combustible en el deposito general`,
           );
-        } else if (!newSale.amount) {
-          newSale.amount =
-            newSale.consumedQuantity * newSale.fuel.salePriceGalon;
-        } else if (!newSale.consumedQuantity) {
-          newSale.consumedQuantity =
-            newSale.amount / newSale.fuel.salePriceGalon;
         }
+      }
 
-        //let deposit = await this.generalDespositService.findOne(1);
-        let depositQuantity = 0; // deposit.actualQuantity
-        if (depositQuantity) {
-          let afterQuantity = 10000; //depositQuantity - newSale.consumedQuantity
-          if (afterQuantity <= 0.0) {
-            throw new InternalServerErrorException(
-              `No se pudo completar la venta: No hay suficiente cantidad de combustible en el deposito general`,
-            );
-          }
-        }
-
-        if (newSale.paymentMethods) {
-          await Promise.all(
-            newSale.paymentMethods.map(async (methodItem) => {
-              try {
-                const response = await apiClientPayments.get(
-                  `metodos/obtener/${methodItem.paymentId}`,
-                );
-                if (response.data.metodo) {
-                  methodItem.method = response.data.metodo;
-                } else {
-                  suscesfully = false;
-                }
-              } catch (_) {
+      if (newSale.paymentMethods) {
+        await Promise.all(
+          newSale.paymentMethods.map(async (methodItem) => {
+            try {
+              const response = await apiClientPayments.get(
+                `metodos/obtener/${methodItem.paymentId}`,
+              );
+              if (response.data.metodo) {
+                methodItem.method = response.data.metodo;
+              } else {
                 suscesfully = false;
               }
-            }),
-          );
-        }
-
-        if (!newSale.customer.nit) {
-          newSale.customer.customerName = 'CF';
-        }
-
-        if (!newSale.createdBy.employeeName) {
-          try {
-           
-            const employee = await apiClientAdministration.get(
-              `/GET/empleados/${newSale.createdBy.employeeId}`,
-            );
-
-            if (employee.data.empleado) {
-              newSale.createdBy.employeeName =
-                employee.data.empleado.nombres +
-                ' ' +
-                employee.data.empleado.apellidos;
-            } else {
+            } catch (_) {
               suscesfully = false;
             }
-          } catch (error) {
-            console.error(error)
-            suscesfully = false;
-          }
-        }
+          }),
+        );
+      }
 
-        const metodosPago = createSaleDto.paymentMethods.map((pm) => ({
-          idMetodo: pm.paymentId,
-          Monto: pm.amount,
-          ...(pm.bankId && { idBanco: pm.bankId }),
-          ...(pm.cardNumber && { Notarjeta: pm.cardNumber }),
-        }));
+      if (!newSale.customer.nit) {
+        newSale.customer.customerName = 'CF';
+      }
 
+      if (!newSale.createdBy.employeeName) {
         try {
-          const responseTransaction = await apiClientPayments.post(
-            `transaccion/crear/`,
-            {
-              nit: newSale.customer.nit,
-              idCaja: createSaleDto.cashRegisterId,
-              idServicioTransaccion: 0,
-              detalle: [
-                {
-                  producto: newSale.fuel.fuelName,
-                  cantidad: newSale.consumedQuantity,
-                  precio: newSale.fuel.salePriceGalon,
-                  descuento: 0,
-                },
-              ],
-              metodosPago: metodosPago,
-            },
+          const employee = await apiClientAdministration.get(
+            `/GET/empleados/${newSale.createdBy.employeeId}`,
           );
 
-          if (responseTransaction.data) {
-            if (newSale.customer.nit != 'CF') {
-              if (responseTransaction.data.factura.cliente) {
-                const customer = responseTransaction.data.factura.cliente;
-                if (customer.idCliente)
-                  newSale.customer.customerId = customer.idCliente;
-
-                if (customer?.nombreCliente || customer?.apellidoCliente) {
-                  const nombre = customer?.nombreCliente ?? '';
-                  const apellido = customer?.apellidoCliente ?? '';
-                  newSale.customer.customerName =
-                    `${nombre} ${apellido}`.trim();
-                } else {
-                  suscesfully = false;
-                }
-              }
-            }
-
-            const transaction = responseTransaction.data;
-
-            if (transaction.idTransaccion) {
-              newSale.transactionId = transaction.idTransaccion;
-            } else {
-              suscesfully = false;
-            }
-            if (transaction.noTransaccion) {
-              newSale.transactionNumber = transaction.noTransaccion;
-            } else {
-              suscesfully = false;
-            }
-            if (transaction.noAutorizacion) {
-              newSale.authorizationNumber = transaction.noAutorizacion;
-            } else {
-              suscesfully = false;
-            }
-            if (transaction.factura?.noFactura) {
-              newSale.billNumber = transaction.factura.noFactura;
-            } else {
-              suscesfully = false;
-            }
+          if (employee.data.empleado) {
+            newSale.createdBy.employeeName =
+              employee.data.empleado.nombres +
+              ' ' +
+              employee.data.empleado.apellidos;
           } else {
             suscesfully = false;
           }
-        } catch (_) {
+        } catch (error) {
           suscesfully = false;
         }
+      }
 
-        const actualQuantityServed: number =
-          servedQuantityBomb + newSale.consumedQuantity;
+      const metodosPago = createSaleDto.paymentMethods.map((pm) => ({
+        idMetodo: pm.paymentId,
+        Monto: pm.amount,
+        ...(pm.bankId && { idBanco: pm.bankId }),
+        ...(pm.cardNumber && { Notarjeta: pm.cardNumber }),
+      }));
 
-        await this.changePumpState(
-          newSale.bomb.bombId,
-          newSale.consumedQuantity,
-          actualQuantityServed,
+      try {
+        const responseTransaction = await apiClientPayments.post(
+          `transaccion/crear/`,
+          {
+            nit: newSale.customer.nit,
+            idCaja: createSaleDto.cashRegisterId,
+            idServicioTransaccion: 0,
+            detalle: [
+              {
+                producto: newSale.fuel.fuelName,
+                cantidad: newSale.consumedQuantity,
+                precio: newSale.fuel.salePriceGalon,
+                descuento: 0,
+              },
+            ],
+            metodosPago: metodosPago,
+          },
         );
 
-        /*
+        if (responseTransaction.data) {
+          if (newSale.customer.nit != 'CF') {
+            if (responseTransaction.data.factura.cliente) {
+              const customer = responseTransaction.data.factura.cliente;
+              if (customer.idCliente)
+                newSale.customer.customerId = customer.idCliente;
+
+              if (customer?.nombreCliente || customer?.apellidoCliente) {
+                const nombre = customer?.nombreCliente ?? '';
+                const apellido = customer?.apellidoCliente ?? '';
+                newSale.customer.customerName = `${nombre} ${apellido}`.trim();
+              } else {
+                suscesfully = false;
+              }
+            }
+          }
+
+          const transaction = responseTransaction.data;
+
+          if (transaction.idTransaccion) {
+            newSale.transactionId = transaction.idTransaccion;
+          } else {
+            suscesfully = false;
+          }
+          if (transaction.noTransaccion) {
+            newSale.transactionNumber = transaction.noTransaccion;
+          } else {
+            suscesfully = false;
+          }
+          if (transaction.noAutorizacion) {
+            newSale.authorizationNumber = transaction.noAutorizacion;
+          } else {
+            suscesfully = false;
+          }
+          if (transaction.factura?.noFactura) {
+            newSale.billNumber = transaction.factura.noFactura;
+          } else {
+            suscesfully = false;
+          }
+        } else {
+          suscesfully = false;
+        }
+      } catch (_) {
+        suscesfully = false;
+      }
+
+      const actualQuantityServed: number =
+        servedQuantityBomb + newSale.consumedQuantity;
+
+      await this.changePumpState(
+        newSale.bomb.bombId,
+        newSale.consumedQuantity,
+        actualQuantityServed,
+      );
+
+      /*
         const capacity = this.generalDepositService.capacity()
         this.generalDepositService.update({
           currentCapacity: 
         })
         */
 
-        if (suscesfully) {
-          //No missing data
-          newSale.status = 1;
-        } else {
-          //Missing some data
-          newSale.status = 2;
-        }
-        return await newSale.save();
-      } catch (error) {
-        throw new InternalServerErrorException(
-          `No se pudo completar la venta: ${error.message}`,
-        );
+      if (suscesfully) {
+        //No missing data
+        newSale.status = 1;
+      } else {
+        //Missing some data
+        newSale.status = 2;
       }
-    } else {
-      try {
-        const newSale = new this.saleModel({
-          ...createSaleDto,
-          fuelSaleId: uuidv4(),
-        });
-
-        if (!newSale.bomb.bombNumber) {
-          const bomb = await this.bombService.findOne(newSale.bomb.bombId);
-
-          if (bomb) {
-            newSale.bomb.bombNumber = bomb.bombNumber;
-          } else {
-            throw new InternalServerErrorException('Bomba no encontrada');
-          }
-        }
-
-        if (!newSale.fuel.fuelName || !newSale.fuel.salePriceGalon) {
-          const fuel = await this.fuelTypesService.findOne(newSale.fuel.fuelId);
-
-          if (fuel) {
-            newSale.fuel.fuelName = fuel.fuelName;
-            newSale.fuel.salePriceGalon = fuel.salePriceGalon;
-          } else {
-            throw new InternalServerErrorException('Bomba no encontrada');
-          }
-        }
-      } catch (error) {}
+      return await newSale.save();
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `No se pudo completar la venta: ${error.message}`,
+      );
     }
+  }
+
+  async createFullTankSale(createSaleDto: CreateSaleDto): Promise<Sale> {
+    try {
+      const newSale = new this.saleModel({
+        ...createSaleDto,
+        fuelSaleId: uuidv4(),
+      });
+
+      if (!newSale.bomb.bombNumber) {
+        const bomb = await this.bombService.findOne(newSale.bomb.bombId);
+
+        if (bomb) {
+          newSale.bomb.bombNumber = bomb.bombNumber;
+        } else {
+          throw new InternalServerErrorException('Bomba no encontrada');
+        }
+      }
+
+      if (!newSale.fuel.fuelName || !newSale.fuel.salePriceGalon) {
+        const fuel = await this.fuelTypesService.findOne(newSale.fuel.fuelId);
+
+        if (fuel) {
+          newSale.fuel.fuelName = fuel.fuelName;
+          newSale.fuel.salePriceGalon = fuel.salePriceGalon;
+        } else {
+          throw new InternalServerErrorException('Combustible no encontrado');
+        }
+      }
+
+      if (!newSale.createdBy.employeeName) {
+        try {
+          const employee = await apiClientAdministration.get(
+            `/GET/empleados/${newSale.createdBy.employeeId}`,
+          );
+
+          if (employee.data.empleado) {
+            newSale.createdBy.employeeName =
+              employee.data.empleado.nombres +
+              ' ' +
+              employee.data.empleado.apellidos;
+          }
+        } catch (_) {}
+      }
+
+      newSale.status = 3;
+
+      return await newSale.save();
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `No se pudo completar la venta: ${error.message}`,
+      );
+    }
+    return;
   }
 
   async findAll(): Promise<Sale[]> {
@@ -267,7 +286,7 @@ export class SaleService {
   async findOne(saleId: string) {
     const sale = await this.saleModel
       .findOne({
-        saleId: saleId,
+        fuelSaleId: saleId,
       })
       .exec();
 
@@ -277,7 +296,7 @@ export class SaleService {
   }
 
   async update(saleId: string, updateSaleDto: UpdateSaleDto): Promise<Sale> {
-    const sale = await this.saleModel.findOne({ saleId }).exec();
+    const sale = await this.saleModel.findOne({ fuelSaleId: saleId }).exec();
 
     if (!sale) {
       throw new NotFoundException(`Venta con ID ${saleId} no encontrada.`);
@@ -442,9 +461,224 @@ export class SaleService {
       }
     }
 
+    if (suscesfully) {
+      updateSaleDto.status = 1;
+    } else {
+      updateSaleDto.status = 2;
+    }
     return this.saleModel
-      .findOneAndUpdate({ saleId }, { ...updateSaleDto }, { new: true })
+      .findOneAndUpdate(
+        { fuelSaleId: saleId },
+        { ...updateSaleDto },
+        { new: true },
+      )
       .exec();
+  }
+
+  async updateSaleFullTank(
+    saleId: string,
+    updateSaleDto: UpdateSaleDto,
+  ): Promise<Sale> {
+    const sale = await this.saleModel.findOne({ fuelSaleId: saleId }).exec();
+
+    if (!sale) {
+      throw new NotFoundException(`Venta con ID ${saleId} no encontrada.`);
+    }
+
+    if (sale.status == 3) {
+      if (updateSaleDto.totalTime) {
+        updateSaleDto.consumedQuantity = Number(updateSaleDto.totalTime) / 5000;
+        updateSaleDto.amount =
+          updateSaleDto.consumedQuantity * sale.fuel.salePriceGalon;
+        updateSaleDto.status = 4;
+        return this.saleModel
+          .findOneAndUpdate(
+            { fuelSaleId: saleId },
+            { ...updateSaleDto },
+            { new: true },
+          )
+          .exec();
+      } else {
+        throw new BadRequestException(
+          'Se necesita el tiempo total que estuvo sirviendo la bomba',
+        );
+      }
+    } else {
+      try {
+        let suscesfully = true;
+
+        if (!updateSaleDto.updatedBy.employeeName) {
+          try {
+            const employee = await apiClientAdministration.get(
+              `/GET/empleados/${updateSaleDto.updatedBy.employeeId}`,
+            );
+            if (employee.data.empleado) {
+              updateSaleDto.updatedBy.employeeName =
+                employee.data.empleado.nombres +
+                ' ' +
+                employee.data.empleado.apellidos;
+            } else {
+              suscesfully = false;
+            }
+          } catch (_) {
+            suscesfully = false;
+          }
+        }
+
+        if (updateSaleDto.createdBy) {
+          if (!updateSaleDto.createdBy.employeeName) {
+            try {
+              const employee = await apiClientAdministration.get(
+                `/GET/empleados/${updateSaleDto.createdBy.employeeId}`,
+              );
+              if (employee.data.empleado) {
+                updateSaleDto.createdBy.employeeName =
+                  employee.data.empleado.nombres +
+                  ' ' +
+                  employee.data.empleado.apellidos;
+              } else {
+                suscesfully = false;
+              }
+            } catch (_) {
+              suscesfully = false;
+            }
+          }
+        }
+
+        if (updateSaleDto.paymentMethods) {
+          if (updateSaleDto.paymentMethods) {
+            await Promise.all(
+              updateSaleDto.paymentMethods.map(async (methodItem) => {
+                try {
+                  const response = await apiClientPayments.get(
+                    `/metodos/obtener/${methodItem.paymentId}`,
+                  );
+                  if (response.data.metodo) {
+                    methodItem.method = response.data.metodo;
+                  } else {
+                    suscesfully = false;
+                  }
+                } catch (_) {
+                  suscesfully = false;
+                }
+              }),
+            );
+          }
+        }
+
+        if (!sale.billNumber && updateSaleDto.paymentMethods) {
+          try {
+            const metodosPago = updateSaleDto.paymentMethods.map((pm) => ({
+              idMetodo: pm.paymentId,
+              Monto: pm.amount,
+              ...(pm.bankId && { idBanco: pm.bankId }),
+              ...(pm.cardNumber && { Notarjeta: pm.cardNumber }),
+            }));
+
+            const responseTransaction = await apiClientPayments.post(
+              `/transaccion/crear/`,
+              {
+                nit: updateSaleDto.customer.nit,
+                idCaja: updateSaleDto.cashRegisterId,
+                idServicioTransaccion: 0,
+                detalle: [
+                  {
+                    producto: sale.fuel.fuelName,
+                    cantidad: updateSaleDto.consumedQuantity,
+                    precio: sale.fuel.salePriceGalon,
+                    descuento: 0,
+                  },
+                ],
+                metodosPago: metodosPago,
+              },
+            );
+
+            if (updateSaleDto.customer) {
+              if (updateSaleDto.customer.nit != 'CF') {
+                if (responseTransaction.data.factura.cliente) {
+                  const customer = responseTransaction.data.factura.cliente;
+                  if (customer.idCliente)
+                    updateSaleDto.customer.customerId = customer.idCliente;
+
+                  if (customer?.nombreCliente || customer?.apellidoCliente) {
+                    const nombre = customer?.nombreCliente ?? '';
+                    const apellido = customer?.apellidoCliente ?? '';
+                    updateSaleDto.customer.customerName =
+                      `${nombre} ${apellido}`.trim();
+                  } else {
+                    suscesfully = false;
+                  }
+                }
+              }
+            }
+
+            const transaction = responseTransaction.data;
+
+            if (transaction.idTransaccion) {
+              updateSaleDto.transactionId = transaction.idTransaccion;
+            } else {
+              suscesfully = false;
+            }
+            if (transaction.noTransaccion) {
+              updateSaleDto.transactionNumber = transaction.noTransaccion;
+            } else {
+              suscesfully = false;
+            }
+            if (transaction.noAutorizacion) {
+              updateSaleDto.authorizationNumber = transaction.noAutorizacion;
+            } else {
+              suscesfully = false;
+            }
+            if (transaction.factura?.noFactura) {
+              updateSaleDto.billNumber = transaction.factura.noFactura;
+            } else {
+              suscesfully = false;
+            }
+          } catch (_) {
+            suscesfully = false;
+          }
+        } else if (updateSaleDto.customer.nit) {
+          if (updateSaleDto.customer.nit != 'CF') {
+            try {
+              const response = await apiClientPayments.get(
+                `/clientes/obtener/${updateSaleDto.customer.nit}`,
+              );
+
+              if (response.data.factura.cliente) {
+                const customer = response.data.factura.cliente;
+                if (customer.idCliente)
+                  updateSaleDto.customer.customerId = customer.idCliente;
+
+                if (customer?.nombreCliente || customer?.apellidoCliente) {
+                  const nombre = customer?.nombreCliente ?? '';
+                  const apellido = customer?.apellidoCliente ?? '';
+                  updateSaleDto.customer.customerName =
+                    `${nombre} ${apellido}`.trim();
+                } else {
+                  suscesfully = false;
+                }
+              }
+            } catch (_) {
+              suscesfully = false;
+            }
+          }
+        }
+
+        if (suscesfully) {
+          updateSaleDto.status = 1;
+        } else {
+          updateSaleDto.status = 4;
+        }
+
+        return await this.saleModel
+          .findOneAndUpdate(
+            { fuelSaleId: saleId },
+            { ...updateSaleDto },
+            { new: true },
+          )
+          .exec();
+      } catch (error) {}
+    }
   }
 
   async remove(saleId: string) {
