@@ -17,6 +17,7 @@ import { GeneralDepositService } from 'src/general-deposit/general-deposit.servi
 import apiClientAdministration, {
   apiClientPayments,
 } from 'src/utils/apiClient';
+import { AlertService } from 'src/alert/alert.service';
 
 @Injectable()
 export class SaleService {
@@ -24,7 +25,8 @@ export class SaleService {
     @InjectModel(Sale.name) private saleModel: Model<SaleDocument>,
     private readonly bombService: BombService,
     private readonly fuelTypesService: FuelTypesService,
-    private readonly generalDespositService: GeneralDepositService,
+    private readonly generalDepositService: GeneralDepositService,
+    private readonly alertService: AlertService,
   ) {}
 
   async create(createSaleDto: CreateSaleDto): Promise<Sale> {
@@ -36,6 +38,7 @@ export class SaleService {
 
       let suscesfully = true;
       let servedQuantityBomb: number = 0.0;
+      let afterQuantity: number = 0.0;
 
       if (!newSale.bomb.bombNumber) {
         const bomb = await this.bombService.findOne(newSale.bomb.bombId);
@@ -55,7 +58,7 @@ export class SaleService {
           newSale.fuel.fuelName = fuel.fuelName;
           newSale.fuel.salePriceGalon = fuel.salePriceGalon;
         } else {
-          throw new InternalServerErrorException('Bomba no encontrada');
+          throw new InternalServerErrorException('Combustible no encontrado');
         }
       }
 
@@ -69,15 +72,39 @@ export class SaleService {
         newSale.consumedQuantity = newSale.amount / newSale.fuel.salePriceGalon;
       }
 
-      let deposit = await this.generalDespositService(1);
-      let depositQuantity = 0; // deposit.actualQuantity
-      if (depositQuantity) {
-        let afterQuantity = 10000; //depositQuantity - newSale.consumedQuantity
-        if (afterQuantity <= 0.0) {
-          throw new InternalServerErrorException(
-            `No se pudo completar la venta: No hay suficiente cantidad de combustible en el deposito general`,
-          );
+      let deposit = await this.generalDepositService.findByFuelType(
+        newSale.fuel.fuelId,
+      );
+      if (deposit) {
+        let depositQuantity = deposit.currentCapacity;
+        if (depositQuantity) {
+          afterQuantity = depositQuantity - newSale.consumedQuantity;
+          if (afterQuantity <= 0.0) {
+            throw new InternalServerErrorException(
+              `No se pudo completar la venta: No hay suficiente cantidad de combustible en el deposito general`,
+            );
+          }
         }
+      } else {
+        throw new InternalServerErrorException('Deposito no encontrado');
+      }
+
+      //Quantity served by the bomb
+      const actualQuantityServed: number =
+        servedQuantityBomb + newSale.consumedQuantity;
+
+      await this.changePumpState(
+        newSale.bomb.bombId,
+        newSale.consumedQuantity,
+        actualQuantityServed,
+      );
+
+      //Current quantity in the general deposit
+      await this.generalDepositService.update(deposit.generalDepositId, {
+        currentCapacity: afterQuantity,
+      });
+
+      if (afterQuantity <= 100) {
       }
 
       if (newSale.paymentMethods) {
@@ -194,21 +221,7 @@ export class SaleService {
         suscesfully = false;
       }
 
-      const actualQuantityServed: number =
-        servedQuantityBomb + newSale.consumedQuantity;
-
-      await this.changePumpState(
-        newSale.bomb.bombId,
-        newSale.consumedQuantity,
-        actualQuantityServed,
-      );
-
-      /*
-        const capacity = this.generalDepositService.capacity()
-        this.generalDepositService.update({
-          currentCapacity: 
-        })
-        */
+      
 
       if (suscesfully) {
         //No missing data
@@ -268,7 +281,15 @@ export class SaleService {
         } catch (_) {}
       }
 
-      //const generalDeposit = await this.generalDespositService.findOne()
+      let maxTime: number;
+      const generalDeposit = await this.generalDepositService.findByFuelType(
+        newSale.fuel.fuelId,
+      );
+      if (generalDeposit) {
+        maxTime = generalDeposit.currentCapacity * 5000;
+      }
+
+      await this.bombService.updateStatus(newSale.bomb.bombId, 2);
 
       newSale.status = 3;
 
@@ -382,9 +403,9 @@ export class SaleService {
             idServicioTransaccion: 0,
             detalle: [
               {
-                producto: updateSaleDto.fuel.fuelName,
-                cantidad: updateSaleDto.consumedQuantity,
-                precio: updateSaleDto.fuel.salePriceGalon,
+                producto: sale.fuel.fuelName,
+                cantidad: sale.consumedQuantity,
+                precio: sale.fuel.salePriceGalon,
                 descuento: 0,
               },
             ],
@@ -494,7 +515,7 @@ export class SaleService {
           updateSaleDto.consumedQuantity * sale.fuel.salePriceGalon;
         updateSaleDto.status = 4;
 
-        let servedQuantityBomb: number;
+        let servedQuantityBomb: number = 0.0;
 
         if (!sale.bomb.bombNumber) {
           const bomb = await this.bombService.findOne(sale.bomb.bombId);
@@ -507,10 +528,40 @@ export class SaleService {
           }
         }
 
-        const actualQuantity =
-          servedQuantityBomb + updateSaleDto.consumedQuantity;
+        let afterQuantity: number = 0.0;
+        let deposit = await this.generalDepositService.findByFuelType(
+          sale.fuel.fuelId,
+        );
+        if (deposit) {
+          let depositQuantity = deposit.currentCapacity;
+          if (depositQuantity) {
+            afterQuantity =
+              depositQuantity - Number(updateSaleDto.consumedQuantity);
+            if (afterQuantity <= 0.0) {
+              throw new InternalServerErrorException(
+                `No se pudo completar la venta: No hay suficiente cantidad de combustible en el deposito general`,
+              );
+            }
+          }
+          await this.generalDepositService.update(deposit.generalDepositId, {
+            currentCapacity: afterQuantity,
+          });
+        }
 
-        await this.bombService.updateStatus(sale.bomb.bombId, 2, actualQuantity);
+        const actualQuantity =
+          servedQuantityBomb + Number(updateSaleDto.consumedQuantity);
+
+        let newStatus;
+        if (actualQuantity >= 1000) {
+          newStatus = 4;
+        } else {
+          newStatus = 1;
+        }
+        await this.bombService.updateStatus(
+          sale.bomb.bombId,
+          newStatus,
+          actualQuantity,
+        );
 
         return this.saleModel
           .findOneAndUpdate(
@@ -605,7 +656,7 @@ export class SaleService {
                 detalle: [
                   {
                     producto: sale.fuel.fuelName,
-                    cantidad: updateSaleDto.consumedQuantity,
+                    cantidad: sale.consumedQuantity,
                     precio: sale.fuel.salePriceGalon,
                     descuento: 0,
                   },
@@ -732,7 +783,7 @@ export class SaleService {
     const bomb = await this.bombService.findOne(bombId);
     if (!bomb) throw new Error('Bomba no encontrada');
 
-    await this.bombService.updateStatus(bombId, 2, servedQuantityBomb);
+    await this.bombService.updateStatus(bombId, 3, servedQuantityBomb);
 
     const duration = Math.floor(5000 * consumedQuantity); // Duration per galon: 5 seconds
 
@@ -741,7 +792,7 @@ export class SaleService {
       if (servedQuantityBomb > 1000) {
         newStatus = 4;
       } else {
-        newStatus = 2;
+        newStatus = 1;
       }
       await this.bombService.updateStatus(bombId, newStatus);
     }, duration);

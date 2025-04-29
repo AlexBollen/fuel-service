@@ -5,7 +5,6 @@ import { Model, Types } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
 import { Bomb, BombDocument } from './schemas/bomb.schema';
-import { PumpFuelDto } from './dto/pump-fuel.dto';
 import { BombGateway } from './bomb.gateway';
 
 
@@ -52,17 +51,7 @@ export class BombService {
       .exec();
   }
 
-  async pumpFuel(bombId: string, pumpFuelDto: PumpFuelDto): Promise<Bomb> {
-    const bomb = await this.bombModel.findOne({ bombId }).exec();
-
-    if (!bomb) {
-      throw new NotFoundException(`Bomba con ID ${bombId} no encontrada.`);
-    }
-
-    return this.bombModel
-      .findOneAndUpdate({ bombId }, pumpFuelDto, { new: true })
-      .exec();
-  }
+  
 
   async remove(bombId: string): Promise<string> {
     const bomb = await this.bombModel

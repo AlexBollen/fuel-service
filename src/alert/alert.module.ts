@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AlertService } from './alert.service';
 import { AlertController } from './alert.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -14,8 +14,9 @@ import { SaleModule } from 'src/sale/sale.module';
       { name: Alert.name, schema: AlertSchema },
       { name: Sale.name, schema: SaleSchema },
     ]),
-    SaleModule,
+    forwardRef(() => SaleModule),   
+     
   ],
-  exports: [MongooseModule],
+  exports: [MongooseModule, AlertService],
 })
 export class AlertModule {}
