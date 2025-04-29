@@ -755,7 +755,7 @@ export class SaleService {
 
   async remove(saleId: string) {
     const sale = await this.saleModel
-      .findByIdAndUpdate({ saleId: saleId }, { status: 0 }, { new: true })
+      .findByIdAndUpdate({ fuelSaleId: saleId }, { status: 0 }, { new: true })
       .exec();
 
     if (sale.billNumber) {
