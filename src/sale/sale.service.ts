@@ -36,7 +36,7 @@ export class SaleService {
         fuelSaleId: uuidv4(),
       });
 
-      let suscesfully = true;
+      let successful = true;
       let servedQuantityBomb: number = 0.0;
       let afterQuantity: number = 0.0;
 
@@ -47,7 +47,7 @@ export class SaleService {
           newSale.bomb.bombNumber = bomb.bombNumber;
           servedQuantityBomb = bomb.servedQuantity;
         } else {
-          throw new InternalServerErrorException('Bomba no encontrada');
+          throw new NotFoundException('Bomba no encontrada');
         }
       }
 
@@ -58,7 +58,7 @@ export class SaleService {
           newSale.fuel.fuelName = fuel.fuelName;
           newSale.fuel.salePriceGalon = fuel.salePriceGalon;
         } else {
-          throw new InternalServerErrorException('Combustible no encontrado');
+          throw new NotFoundException('Combustible no encontrado');
         }
       }
 
@@ -86,7 +86,7 @@ export class SaleService {
           }
         }
       } else {
-        throw new InternalServerErrorException('Deposito no encontrado');
+        throw new NotFoundException('Deposito no encontrado');
       }
 
       //Quantity served by the bomb
@@ -117,10 +117,10 @@ export class SaleService {
               if (response.data.metodo) {
                 methodItem.method = response.data.metodo;
               } else {
-                suscesfully = false;
+                successful = false;
               }
             } catch (_) {
-              suscesfully = false;
+              successful = false;
             }
           }),
         );
@@ -142,10 +142,10 @@ export class SaleService {
               ' ' +
               employee.data.empleado.apellidos;
           } else {
-            suscesfully = false;
+            successful = false;
           }
         } catch (error) {
-          suscesfully = false;
+          successful = false;
         }
       }
 
@@ -187,7 +187,7 @@ export class SaleService {
                 const apellido = customer?.apellidoCliente ?? '';
                 newSale.customer.customerName = `${nombre} ${apellido}`.trim();
               } else {
-                suscesfully = false;
+                successful = false;
               }
             }
           }
@@ -197,33 +197,31 @@ export class SaleService {
           if (transaction.idTransaccion) {
             newSale.transactionId = transaction.idTransaccion;
           } else {
-            suscesfully = false;
+            successful = false;
           }
           if (transaction.noTransaccion) {
             newSale.transactionNumber = transaction.noTransaccion;
           } else {
-            suscesfully = false;
+            successful = false;
           }
           if (transaction.noAutorizacion) {
             newSale.authorizationNumber = transaction.noAutorizacion;
           } else {
-            suscesfully = false;
+            successful = false;
           }
           if (transaction.factura?.noFactura) {
             newSale.billNumber = transaction.factura.noFactura;
           } else {
-            suscesfully = false;
+            successful = false;
           }
         } else {
-          suscesfully = false;
+          successful = false;
         }
       } catch (_) {
-        suscesfully = false;
+        successful = false;
       }
 
-      
-
-      if (suscesfully) {
+      if (successful) {
         //No missing data
         newSale.status = 1;
       } else {
@@ -251,7 +249,7 @@ export class SaleService {
         if (bomb) {
           newSale.bomb.bombNumber = bomb.bombNumber;
         } else {
-          throw new InternalServerErrorException('Bomba no encontrada');
+          throw new NotFoundException('Bomba no encontrada');
         }
       }
 
@@ -262,7 +260,7 @@ export class SaleService {
           newSale.fuel.fuelName = fuel.fuelName;
           newSale.fuel.salePriceGalon = fuel.salePriceGalon;
         } else {
-          throw new InternalServerErrorException('Combustible no encontrado');
+          throw new NotFoundException('Combustible no encontrado');
         }
       }
 
@@ -325,42 +323,87 @@ export class SaleService {
       throw new NotFoundException(`Venta con ID ${saleId} no encontrada.`);
     }
 
-    let suscesfully = true;
+    let successful = true;
 
-    if (!updateSaleDto.updatedBy.employeeName) {
-      try {
-        const employee = await apiClientAdministration.get(
-          `/GET/empleados/${updateSaleDto.updatedBy.employeeId}`,
-        );
-        if (employee.data.empleado) {
-          updateSaleDto.updatedBy.employeeName =
-            employee.data.empleado.nombres +
-            ' ' +
-            employee.data.empleado.apellidos;
-        } else {
-          suscesfully = false;
+    const needsUpdateUpdatedBy =
+      updateSaleDto.updatedBy && !updateSaleDto.updatedBy.employeeName;
+    const needsUpdateCreatedBy =
+      updateSaleDto.createdBy && !updateSaleDto.createdBy.employeeName;
+
+    if (needsUpdateUpdatedBy && needsUpdateCreatedBy) {
+      const updatedId = updateSaleDto.updatedBy.employeeId;
+      const createdId = updateSaleDto.createdBy.employeeId;
+
+      if (updatedId === createdId) {
+        try {
+          const employee = await apiClientAdministration.get(
+            `/GET/empleados/${updatedId}`,
+          );
+          if (employee.data.empleado) {
+            const fullName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
+            updateSaleDto.updatedBy.employeeName = fullName;
+            updateSaleDto.createdBy.employeeName = fullName;
+          } else {
+            successful = false;
+          }
+        } catch (_) {
+          successful = false;
         }
-      } catch (_) {
-        suscesfully = false;
-      }
-    }
+      } else {
+        try {
+          const employee = await apiClientAdministration.get(
+            `/GET/empleados/${updatedId}`,
+          );
+          if (employee.data.empleado) {
+            updateSaleDto.updatedBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
+          } else {
+            successful = false;
+          }
+        } catch (_) {
+          successful = false;
+        }
 
-    if (updateSaleDto.createdBy) {
-      if (!updateSaleDto.createdBy.employeeName) {
+        try {
+          const employee = await apiClientAdministration.get(
+            `/GET/empleados/${createdId}`,
+          );
+          if (employee.data.empleado) {
+            updateSaleDto.createdBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
+          } else {
+            successful = false;
+          }
+        } catch (_) {
+          successful = false;
+        }
+      }
+    } else {
+      if (needsUpdateUpdatedBy) {
+        try {
+          const employee = await apiClientAdministration.get(
+            `/GET/empleados/${updateSaleDto.updatedBy.employeeId}`,
+          );
+          if (employee.data.empleado) {
+            updateSaleDto.updatedBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
+          } else {
+            successful = false;
+          }
+        } catch (_) {
+          successful = false;
+        }
+      }
+
+      if (needsUpdateCreatedBy) {
         try {
           const employee = await apiClientAdministration.get(
             `/GET/empleados/${updateSaleDto.createdBy.employeeId}`,
           );
           if (employee.data.empleado) {
-            updateSaleDto.createdBy.employeeName =
-              employee.data.empleado.nombres +
-              ' ' +
-              employee.data.empleado.apellidos;
+            updateSaleDto.createdBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
           } else {
-            suscesfully = false;
+            successful = false;
           }
         } catch (_) {
-          suscesfully = false;
+          successful = false;
         }
       }
     }
@@ -376,10 +419,10 @@ export class SaleService {
               if (response.data.metodo) {
                 methodItem.method = response.data.metodo;
               } else {
-                suscesfully = false;
+                successful = false;
               }
             } catch (_) {
-              suscesfully = false;
+              successful = false;
             }
           }),
         );
@@ -426,7 +469,7 @@ export class SaleService {
                 updateSaleDto.customer.customerName =
                   `${nombre} ${apellido}`.trim();
               } else {
-                suscesfully = false;
+                successful = false;
               }
             }
           }
@@ -437,25 +480,25 @@ export class SaleService {
         if (transaction.idTransaccion) {
           updateSaleDto.transactionId = transaction.idTransaccion;
         } else {
-          suscesfully = false;
+          successful = false;
         }
         if (transaction.noTransaccion) {
           updateSaleDto.transactionNumber = transaction.noTransaccion;
         } else {
-          suscesfully = false;
+          successful = false;
         }
         if (transaction.noAutorizacion) {
           updateSaleDto.authorizationNumber = transaction.noAutorizacion;
         } else {
-          suscesfully = false;
+          successful = false;
         }
         if (transaction.factura?.noFactura) {
           updateSaleDto.billNumber = transaction.factura.noFactura;
         } else {
-          suscesfully = false;
+          successful = false;
         }
       } catch (_) {
-        suscesfully = false;
+        successful = false;
       }
     } else if (updateSaleDto.customer.nit) {
       if (updateSaleDto.customer.nit != 'CF') {
@@ -475,16 +518,16 @@ export class SaleService {
               updateSaleDto.customer.customerName =
                 `${nombre} ${apellido}`.trim();
             } else {
-              suscesfully = false;
+              successful = false;
             }
           }
         } catch (_) {
-          suscesfully = false;
+          successful = false;
         }
       }
     }
 
-    if (suscesfully) {
+    if (successful) {
       updateSaleDto.status = 1;
     } else {
       updateSaleDto.status = 2;
@@ -524,7 +567,7 @@ export class SaleService {
             sale.bomb.bombNumber = bomb.bombNumber;
             servedQuantityBomb = bomb.servedQuantity;
           } else {
-            throw new InternalServerErrorException('Bomba no encontrada');
+            throw new NotFoundException('Bomba no encontrada');
           }
         }
 
@@ -577,42 +620,87 @@ export class SaleService {
       }
     } else {
       try {
-        let suscesfully = true;
+        let successful = true;
 
-        if (!updateSaleDto.updatedBy.employeeName) {
-          try {
-            const employee = await apiClientAdministration.get(
-              `/GET/empleados/${updateSaleDto.updatedBy.employeeId}`,
-            );
-            if (employee.data.empleado) {
-              updateSaleDto.updatedBy.employeeName =
-                employee.data.empleado.nombres +
-                ' ' +
-                employee.data.empleado.apellidos;
-            } else {
-              suscesfully = false;
+        const needsUpdateUpdatedBy =
+          updateSaleDto.updatedBy && !updateSaleDto.updatedBy.employeeName;
+        const needsUpdateCreatedBy =
+          updateSaleDto.createdBy && !updateSaleDto.createdBy.employeeName;
+
+        if (needsUpdateUpdatedBy && needsUpdateCreatedBy) {
+          const updatedId = updateSaleDto.updatedBy.employeeId;
+          const createdId = updateSaleDto.createdBy.employeeId;
+
+          if (updatedId === createdId) {
+            try {
+              const employee = await apiClientAdministration.get(
+                `/GET/empleados/${updatedId}`,
+              );
+              if (employee.data.empleado) {
+                const fullName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
+                updateSaleDto.updatedBy.employeeName = fullName;
+                updateSaleDto.createdBy.employeeName = fullName;
+              } else {
+                successful = false;
+              }
+            } catch (_) {
+              successful = false;
             }
-          } catch (_) {
-            suscesfully = false;
-          }
-        }
+          } else {
+            try {
+              const employee = await apiClientAdministration.get(
+                `/GET/empleados/${updatedId}`,
+              );
+              if (employee.data.empleado) {
+                updateSaleDto.updatedBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
+              } else {
+                successful = false;
+              }
+            } catch (_) {
+              successful = false;
+            }
 
-        if (updateSaleDto.createdBy) {
-          if (!updateSaleDto.createdBy.employeeName) {
+            try {
+              const employee = await apiClientAdministration.get(
+                `/GET/empleados/${createdId}`,
+              );
+              if (employee.data.empleado) {
+                updateSaleDto.createdBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
+              } else {
+                successful = false;
+              }
+            } catch (_) {
+              successful = false;
+            }
+          }
+        } else {
+          if (needsUpdateUpdatedBy) {
+            try {
+              const employee = await apiClientAdministration.get(
+                `/GET/empleados/${updateSaleDto.updatedBy.employeeId}`,
+              );
+              if (employee.data.empleado) {
+                updateSaleDto.updatedBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
+              } else {
+                successful = false;
+              }
+            } catch (_) {
+              successful = false;
+            }
+          }
+
+          if (needsUpdateCreatedBy) {
             try {
               const employee = await apiClientAdministration.get(
                 `/GET/empleados/${updateSaleDto.createdBy.employeeId}`,
               );
               if (employee.data.empleado) {
-                updateSaleDto.createdBy.employeeName =
-                  employee.data.empleado.nombres +
-                  ' ' +
-                  employee.data.empleado.apellidos;
+                updateSaleDto.createdBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
               } else {
-                suscesfully = false;
+                successful = false;
               }
             } catch (_) {
-              suscesfully = false;
+              successful = false;
             }
           }
         }
@@ -628,10 +716,10 @@ export class SaleService {
                   if (response.data.metodo) {
                     methodItem.method = response.data.metodo;
                   } else {
-                    suscesfully = false;
+                    successful = false;
                   }
                 } catch (_) {
-                  suscesfully = false;
+                  successful = false;
                 }
               }),
             );
@@ -678,7 +766,7 @@ export class SaleService {
                     updateSaleDto.customer.customerName =
                       `${nombre} ${apellido}`.trim();
                   } else {
-                    suscesfully = false;
+                    successful = false;
                   }
                 }
               }
@@ -689,25 +777,25 @@ export class SaleService {
             if (transaction.idTransaccion) {
               updateSaleDto.transactionId = transaction.idTransaccion;
             } else {
-              suscesfully = false;
+              successful = false;
             }
             if (transaction.noTransaccion) {
               updateSaleDto.transactionNumber = transaction.noTransaccion;
             } else {
-              suscesfully = false;
+              successful = false;
             }
             if (transaction.noAutorizacion) {
               updateSaleDto.authorizationNumber = transaction.noAutorizacion;
             } else {
-              suscesfully = false;
+              successful = false;
             }
             if (transaction.factura?.noFactura) {
               updateSaleDto.billNumber = transaction.factura.noFactura;
             } else {
-              suscesfully = false;
+              successful = false;
             }
           } catch (_) {
-            suscesfully = false;
+            successful = false;
           }
         } else if (updateSaleDto.customer.nit) {
           if (updateSaleDto.customer.nit != 'CF') {
@@ -727,16 +815,16 @@ export class SaleService {
                   updateSaleDto.customer.customerName =
                     `${nombre} ${apellido}`.trim();
                 } else {
-                  suscesfully = false;
+                  successful = false;
                 }
               }
             } catch (_) {
-              suscesfully = false;
+              successful = false;
             }
           }
         }
 
-        if (suscesfully) {
+        if (successful) {
           updateSaleDto.status = 1;
         } else {
           updateSaleDto.status = 4;
@@ -781,7 +869,7 @@ export class SaleService {
     servedQuantityBomb?: number,
   ) {
     const bomb = await this.bombService.findOne(bombId);
-    if (!bomb) throw new Error('Bomba no encontrada');
+    if (!bomb) throw new NotFoundException('Bomba no encontrada');
 
     await this.bombService.updateStatus(bombId, 3, servedQuantityBomb);
 
