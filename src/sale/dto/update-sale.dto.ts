@@ -61,14 +61,6 @@ export class UpdateSaleDto extends PartialType(CreateSaleDto) {
   billNumber?: string;
 
   @ApiProperty({
-    description: 'Id de la caja',
-    example: 'ABCD1234',
-  })
-  @IsString()
-  @IsOptional()
-  cashRegisterId?: string;
-
-  @ApiProperty({
     description: 'Tiempo en milisegundos que duró la bomba despachando combustible',
     example: 1000,
   })

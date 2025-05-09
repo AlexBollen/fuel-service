@@ -107,24 +107,24 @@ export class SaleService {
       if (afterQuantity <= 100) {
       }
 
-      if (newSale.paymentMethods) {
-        await Promise.all(
-          newSale.paymentMethods.map(async (methodItem) => {
-            try {
-              const response = await apiClientPayments.get(
-                `metodos/obtener/${methodItem.paymentId}`,
-              );
-              if (response.data.metodo) {
-                methodItem.method = response.data.metodo;
-              } else {
-                successful = false;
-              }
-            } catch (_) {
-              successful = false;
-            }
-          }),
-        );
-      }
+      // if (newSale.paymentMethods) {
+      //   await Promise.all(
+      //     newSale.paymentMethods.map(async (methodItem) => {
+      //       try {
+      //         const response = await apiClientPayments.get(
+      //           `metodos/obtener/${methodItem.paymentId}`,
+      //         );
+      //         if (response.data.metodo) {
+      //           methodItem.method = response.data.metodo;
+      //         } else {
+      //           successful = false;
+      //         }
+      //       } catch (_) {
+      //         successful = false;
+      //       }
+      //     }),
+      //   );
+      // }
 
       if (!newSale.customer.nit) {
         newSale.customer.customerName = 'CF';
@@ -150,28 +150,28 @@ export class SaleService {
       }
 
       const metodosPago = createSaleDto.paymentMethods.map((pm) => ({
-        idMetodo: pm.paymentId,
+        IdMetodo: pm.paymentId,
         Monto: pm.amount,
-        ...(pm.bankId && { idBanco: pm.bankId }),
+        ...(pm.bankId && { IdBanco: pm.bankId }),
         ...(pm.cardNumber && { Notarjeta: pm.cardNumber }),
       }));
 
       try {
         const responseTransaction = await apiClientPayments.post(
-          `transaccion/crear/`,
+          `transacciones/crear/`,
           {
-            nit: newSale.customer.nit,
-            idCaja: createSaleDto.cashRegisterId,
-            idServicioTransaccion: 0,
-            detalle: [
+            Nit: newSale.customer.nit,
+            IdCaja: createSaleDto.cashRegisterId,
+            IdServicioTransaccion: 4,
+            Detalle: [
               {
-                producto: newSale.fuel.fuelName,
-                cantidad: newSale.consumedQuantity,
-                precio: newSale.fuel.salePriceGalon,
-                descuento: 0,
+                Producto: newSale.fuel.fuelName,
+                Cantidad: newSale.consumedQuantity,
+                Precio: newSale.fuel.salePriceGalon,
+                Descuento: 0,
               },
             ],
-            metodosPago: metodosPago,
+            MetodosPago: metodosPago,
           },
         );
 
@@ -219,6 +219,7 @@ export class SaleService {
         }
       } catch (_) {
         successful = false;
+        console.error("ERROR: ",_)
       }
 
       if (successful) {
@@ -408,51 +409,51 @@ export class SaleService {
       }
     }
 
-    if (updateSaleDto.paymentMethods) {
-      if (updateSaleDto.paymentMethods) {
-        await Promise.all(
-          updateSaleDto.paymentMethods.map(async (methodItem) => {
-            try {
-              const response = await apiClientPayments.get(
-                `/metodos/obtener/${methodItem.paymentId}`,
-              );
-              if (response.data.metodo) {
-                methodItem.method = response.data.metodo;
-              } else {
-                successful = false;
-              }
-            } catch (_) {
-              successful = false;
-            }
-          }),
-        );
-      }
-    }
+    // if (updateSaleDto.paymentMethods) {
+    //   if (updateSaleDto.paymentMethods) {
+    //     await Promise.all(
+    //       updateSaleDto.paymentMethods.map(async (methodItem) => {
+    //         try {
+    //           const response = await apiClientPayments.get(
+    //             `/metodos/obtener/${methodItem.paymentId}`,
+    //           );
+    //           if (response.data.metodo) {
+    //             methodItem.method = response.data.metodo;
+    //           } else {
+    //             successful = false;
+    //           }
+    //         } catch (_) {
+    //           successful = false;
+    //         }
+    //       }),
+    //     );
+    //   }
+    // }
 
     if (!sale.billNumber && updateSaleDto.paymentMethods) {
       try {
         const metodosPago = updateSaleDto.paymentMethods.map((pm) => ({
-          idMetodo: pm.paymentId,
+          IdMetodo: pm.paymentId,
           Monto: pm.amount,
-          ...(pm.bankId && { idBanco: pm.bankId }),
+          ...(pm.bankId && { IdBanco: pm.bankId }),
           ...(pm.cardNumber && { Notarjeta: pm.cardNumber }),
         }));
 
         const responseTransaction = await apiClientPayments.post(
           `/transaccion/crear/`,
           {
-            nit: updateSaleDto.customer.nit,
-            idCaja: updateSaleDto.cashRegisterId,
-            idServicioTransaccion: 0,
-            detalle: [
+            Nit: updateSaleDto.customer.nit,
+            IdCaja: updateSaleDto.cashRegisterId,
+            IdServicioTransaccion: 3002,
+            Detalle: [
               {
-                producto: sale.fuel.fuelName,
-                cantidad: sale.consumedQuantity,
-                precio: sale.fuel.salePriceGalon,
-                descuento: 0,
+                Producto: sale.fuel.fuelName,
+                Cantidad: sale.consumedQuantity,
+                Precio: sale.fuel.salePriceGalon,
+                Descuento: 0,
               },
             ],
-            metodosPago: metodosPago,
+            MetodosPago: metodosPago,
           },
         );
 
@@ -504,7 +505,7 @@ export class SaleService {
       if (updateSaleDto.customer.nit != 'CF') {
         try {
           const response = await apiClientPayments.get(
-            `/clientes/obtener/${updateSaleDto.customer.nit}`,
+            `/cliente/obtener/${updateSaleDto.customer.nit}`,
           );
 
           if (response.data.factura.cliente) {
@@ -705,51 +706,51 @@ export class SaleService {
           }
         }
 
-        if (updateSaleDto.paymentMethods) {
-          if (updateSaleDto.paymentMethods) {
-            await Promise.all(
-              updateSaleDto.paymentMethods.map(async (methodItem) => {
-                try {
-                  const response = await apiClientPayments.get(
-                    `/metodos/obtener/${methodItem.paymentId}`,
-                  );
-                  if (response.data.metodo) {
-                    methodItem.method = response.data.metodo;
-                  } else {
-                    successful = false;
-                  }
-                } catch (_) {
-                  successful = false;
-                }
-              }),
-            );
-          }
-        }
+        // if (updateSaleDto.paymentMethods) {
+        //   if (updateSaleDto.paymentMethods) {
+        //     await Promise.all(
+        //       updateSaleDto.paymentMethods.map(async (methodItem) => {
+        //         try {
+        //           const response = await apiClientPayments.get(
+        //             `/metodos/obtener/${methodItem.paymentId}`,
+        //           );
+        //           if (response.data.metodo) {
+        //             methodItem.method = response.data.metodo;
+        //           } else {
+        //             successful = false;
+        //           }
+        //         } catch (_) {
+        //           successful = false;
+        //         }
+        //       }),
+        //     );
+        //   }
+        // }
 
         if (!sale.billNumber && updateSaleDto.paymentMethods) {
           try {
             const metodosPago = updateSaleDto.paymentMethods.map((pm) => ({
-              idMetodo: pm.paymentId,
+              IdMetodo: pm.paymentId,
               Monto: pm.amount,
-              ...(pm.bankId && { idBanco: pm.bankId }),
+              ...(pm.bankId && { IdBanco: pm.bankId }),
               ...(pm.cardNumber && { Notarjeta: pm.cardNumber }),
             }));
 
             const responseTransaction = await apiClientPayments.post(
               `/transaccion/crear/`,
               {
-                nit: updateSaleDto.customer.nit,
-                idCaja: updateSaleDto.cashRegisterId,
-                idServicioTransaccion: 0,
-                detalle: [
+                Nit: updateSaleDto.customer.nit,
+                IdCaja: updateSaleDto.cashRegisterId,
+                IdServicioTransaccion: 3002,
+                Detalle: [
                   {
-                    producto: sale.fuel.fuelName,
-                    cantidad: sale.consumedQuantity,
-                    precio: sale.fuel.salePriceGalon,
-                    descuento: 0,
+                    Producto: sale.fuel.fuelName,
+                    Cantidad: sale.consumedQuantity,
+                    Precio: sale.fuel.salePriceGalon,
+                    Descuento: 0,
                   },
                 ],
-                metodosPago: metodosPago,
+                MetodosPago: metodosPago,
               },
             );
 
@@ -801,7 +802,7 @@ export class SaleService {
           if (updateSaleDto.customer.nit != 'CF') {
             try {
               const response = await apiClientPayments.get(
-                `/clientes/obtener/${updateSaleDto.customer.nit}`,
+                `/cliente/obtener/${updateSaleDto.customer.nit}`,
               );
 
               if (response.data.factura.cliente) {

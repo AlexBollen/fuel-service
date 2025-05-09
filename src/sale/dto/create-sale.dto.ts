@@ -142,7 +142,7 @@ export class CreateSaleDto {
       'Id de la caja',
     example: 'ABCD1234',
   })
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  cashRegisterId?: string;
+  cashRegisterId?: number;
 }
