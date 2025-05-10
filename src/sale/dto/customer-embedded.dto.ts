@@ -4,17 +4,19 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CustomerEmbeddedDto {
   @ApiProperty({
     description: 'Id del cliente',
-    example: 'XXXXX', //Coordinar con pagos y administración
+    example: 'XXXXX', 
   })
   @IsString()
-  customerId: string;
+  @IsOptional()
+  customerId?: string;
 
   @ApiProperty({
     description: 'Nombre del cliente',
     example: 'Fernando Rodríguez',
   })
   @IsString()
-  customerName: string;
+  @IsOptional()
+  customerName?: string;
 
   @ApiProperty({
     description: 'Nit del cliente',

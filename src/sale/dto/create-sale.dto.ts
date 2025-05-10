@@ -3,12 +3,11 @@ import {
   ValidateNested,
   IsArray,
   IsNumber,
-  IsDecimal,
+  IsIn,
   IsObject,
   IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { PaymentMethodDto } from './paymenth-method-embedded.dto';
 import { EmployeeEmbeddedDto } from './employee-embedded.dto';
@@ -18,22 +17,31 @@ import { BombEmbeddedDto } from './bomb-embedded.dto';
 import { FidelityCardEmbeddedDto } from './fidelity-card-embedded.dto';
 
 export class CreateSaleDto {
-  @IsString()
-  fuelId: string;
+  
+  @ApiProperty({
+    description: 'Determina que tipo de venta es',
+    example: 1,
+  })
+  @IsNumber()
+  @IsIn([1, 2])
+  type: number;
+  
 
   @ApiProperty({
     description: 'Total de la venta',
-    example: '100.00',
+    example: 150.00,
   })
-  @IsDecimal()
-  amount: Types.Decimal128;
+  @IsNumber()
+  @IsOptional()
+  amount?: number;
 
   @ApiProperty({
     description: 'Cantidad consumida',
-    example: '5.0',
+    example: 3.35195530726257,
   })
-  @IsDecimal()
-  consumedQuantity: Types.Decimal128;
+  @IsNumber()
+  @IsOptional()
+  consumedQuantity?: number;
 
   @ApiProperty({
     type: CustomerEmbeddedDto,
@@ -54,8 +62,8 @@ export class CreateSaleDto {
     type: BombEmbeddedDto,
     description: 'Datos de la bomba que despachó el combustible',
     example: {
-      bombId: 'BOMB-1',
-      bombNumber: '1',
+      bombId: 'c802afc9-a371-4dd0-a4d2-befdd992bbf3',
+      bombNumber: 1,
     },
   })
   @ValidateNested()
@@ -67,9 +75,9 @@ export class CreateSaleDto {
     type: FuelEmbeddedDto,
     description: 'Datos del combustible que consumió el cliente',
     example: {
-      fuelId: 'DIESEL-1',
-      fuelName: 'Diésel',
-      fuelPriceGalon: '27.09',
+      fuelId: 'a5610883-cc68-4b51-b7f7-4f0ab86907bb',
+      fuelName: 'Super',
+      fuelPriceGalon: 44.75,
     },
   })
   @ValidateNested()
@@ -83,7 +91,7 @@ export class CreateSaleDto {
     example: {
       paymentId: 'XXXXXXXX',
       methood: 'Efectivo',
-      amount: '100.00',
+      amount: 150.00,
     },
   })
   @IsArray()
@@ -92,6 +100,7 @@ export class CreateSaleDto {
   @IsOptional()
   paymentMethods?: PaymentMethodDto[];
 
+  /*
   @ApiProperty({
     type: FidelityCardEmbeddedDto,
     description: 'Datos de la tarjeta de fidelidad',
@@ -103,10 +112,9 @@ export class CreateSaleDto {
   })
   @ValidateNested()
   @IsObject()
-  @IsOptional()
   @Type(() => FidelityCardEmbeddedDto)
   @IsOptional()
-  fidelityCard?: FidelityCardEmbeddedDto;
+  fidelityCard?: FidelityCardEmbeddedDto;*/
 
   @ApiProperty({
     type: EmployeeEmbeddedDto,
@@ -128,4 +136,13 @@ export class CreateSaleDto {
   @IsNumber()
   @IsOptional()
   status?: number = 2;
+
+  @ApiProperty({
+    description:
+      'Id de la caja',
+    example: 'ABCD1234',
+  })
+  @IsNumber()
+  @IsOptional()
+  cashRegisterId?: number;
 }

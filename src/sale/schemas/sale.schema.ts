@@ -16,26 +16,27 @@ export class Sale {
   @Prop({ type: String, required: true })
   fuelSaleId: string;
 
-  @Prop({ type: Types.Decimal128, required: true })
-  amount: Types.Decimal128;
+  @Prop({ type: Number, required: false })
+  amount?: number;
 
-  @Prop({ type: Types.Decimal128, required: true })
-  consumedQuantity: Types.Decimal128;
+  @Prop({ type: Number, required: false })
+  consumedQuantity?: number;
 
-  @Prop({ type: CustomerEmbedded, required: true })
-  customer: CustomerEmbedded;
+  @Prop({ type: CustomerEmbedded, required: false })
+  customer?: CustomerEmbedded;
 
   @Prop({ type: BombEmbedded, required: true })
   bomb: BombEmbedded;
 
-  @Prop({ type: FuelEmbedded, required: false })
+  @Prop({ type: FuelEmbedded, required: true })
   fuel: FuelEmbedded;
 
   @Prop({ type: [PaymentMethodEmbedded], required: false })
-  paymentMethods: PaymentMethodEmbedded[];
+  paymentMethods?: PaymentMethodEmbedded[];
 
+  /*
   @Prop({ type: FidelityCardEmbedded, required: false })
-  fidelityCard?: FidelityCardEmbedded;
+  fidelityCard?: FidelityCardEmbedded;*/
 
   @Prop({ type: EmployeeEmbedded, required: true })
   createdBy: EmployeeEmbedded;
@@ -43,8 +44,20 @@ export class Sale {
   @Prop({ type: EmployeeEmbedded, required: false })
   updatedBy?: EmployeeEmbedded;
 
-  @Prop({ type: Number, required: true })
-  status: number;
+  @Prop({ type: Number, required: false })
+  status?: number;
+
+  @Prop({ type: String, required: false })
+  transactionId?: string;
+
+  @Prop({ type: Number, required: false })
+  transactionNumber?: number;
+
+  @Prop({ type: String, required: false })
+  authorizationNumber?: string;
+
+  @Prop({ type: String, required: false })
+  billNumber?: string;
 }
 
 // Genera el esquema automáticamente y ya no se tiene que definir manualmente

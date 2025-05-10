@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class FidelityCardEmbeddedDto {
   @ApiProperty({
     description: 'Id de la tarjeta de fidelidad',
-    example: '123123123', //Coordinar con pagos
+    example: '123123123', 
   })
   @IsString()
   fidelityCardId: string;

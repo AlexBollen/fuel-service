@@ -12,8 +12,8 @@ export class Bomb {
   @Prop({ type: Number, required: true })
   bombNumber: number;
 
-  @Prop({ type: Types.Decimal128, required: true })
-  servedQuantity: Types.Decimal128;
+  @Prop({ type: Number, required: true })
+  servedQuantity: number;
 
   @Prop({ type: EmployeeEmbedded, required: true })
   employeeInCharge: EmployeeEmbedded;

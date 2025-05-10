@@ -1,11 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { BombService } from './bomb.service';
 import { BombController } from './bomb.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Bomb, BombSchema } from './schemas/bomb.schema';
-import { EmployeeEmbeddedSchema } from 'src/sale/schemas/employee.schema';
-import { Sale } from 'src/sale/schemas/sale.schema';
 import { SaleModule } from 'src/sale/sale.module';
+import { Sale, SaleSchema } from 'src/sale/schemas/sale.schema';
 import { BombGateway } from './bomb.gateway';
 
 @Module({
@@ -14,10 +13,10 @@ import { BombGateway } from './bomb.gateway';
   imports: [
     MongooseModule.forFeature([
       { name: Bomb.name, schema: BombSchema },
-      { name: Sale.name, schema: EmployeeEmbeddedSchema },
+      { name: Sale.name, schema: SaleSchema },
     ]),
-    SaleModule,
+    forwardRef(() => SaleModule),     
   ],
-  exports: [MongooseModule],
+  exports: [MongooseModule, BombService],
 })
 export class BombModule {}
