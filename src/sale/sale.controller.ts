@@ -24,6 +24,14 @@ import { Sale } from './schemas/sale.schema';
 export class SaleController {
   constructor(private readonly saleService: SaleService) {}
 
+  @Patch(':id/total-time')
+  async updateTotalTime(
+    @Param('id') id: string,
+    @Body() body: { totalTime: number },
+  ) {
+    return this.saleService.updateTotalTime(id, body.totalTime);
+  }
+
   @Post('/create')
   @ApiOperation({
     summary: 'Crear una nueva venta',
@@ -107,13 +115,11 @@ export class SaleController {
     @Param('fuelSaleId') fuelSaleId: string,
     @Body() updateSaleDto: UpdateSaleDto,
   ): Promise<Sale> {
-    if(updateSaleDto.type==1){
+    if (updateSaleDto.type == 1) {
       return this.saleService.update(fuelSaleId, updateSaleDto);
+    } else {
+      return this.saleService.updateSaleFullTank(fuelSaleId, updateSaleDto);
     }
-    else{
-      return this.saleService.updateSaleFullTank(fuelSaleId, updateSaleDto)
-    }
-    
   }
 
   @Patch('/delete/:fuelSaleId')

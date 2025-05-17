@@ -20,6 +20,12 @@ export class Sale {
   amount?: number;
 
   @Prop({ type: Number, required: false })
+  maxTime?: number; // maxium time that the system allows to finish the sale
+
+  @Prop({ type: Number, required: false })
+  totalTime?: number; // total time that arduino tooks
+
+  @Prop({ type: Number, required: false })
   consumedQuantity?: number;
 
   @Prop({ type: CustomerEmbedded, required: false })
