@@ -50,7 +50,7 @@ export class GeneralDepositController {
   @Get('/list/:generalDepositId')
   @ApiOperation({
     summary: 'Obtener un depósito general por ID',
-    description: 'Este endpoint lista un depósito general específico',
+    description: 'Este endpoint retorna un depósito general específico',
   })
   @ApiParam({
     name: 'generalDepositId',
@@ -94,8 +94,8 @@ export class GeneralDepositController {
 
   @Patch('/update/:generalDepositId')
   @ApiOperation({
-    summary: 'Editar una bomba',
-    description: 'Este endpoint edita una bomba específica',
+    summary: 'Editar un depósito general',
+    description: 'Este endpoint edita un depósito de combustible específico',
   })
   @ApiBody({ type: UpdateGeneralDepositDto })
   @ApiParam({
@@ -104,7 +104,7 @@ export class GeneralDepositController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Se actualizó correctamente correctamente el depósito general',
+    description: 'Se actualizó correctamente el depósito general',
     type: GeneralDeposit,
   })
   @ApiResponse({
@@ -115,14 +115,34 @@ export class GeneralDepositController {
     @Param('generalDepositId') id: string,
     @Body() updateGeneralDepositDto: UpdateGeneralDepositDto,
   ) {
-    return this.generalDepositService.update(id, updateGeneralDepositDto);
+    return this.generalDepositService.update(updateGeneralDepositDto, id);
+  }
+
+  @Post('/update/supply')
+  @ApiOperation({
+    summary: 'Reabastecer un depósito general',
+    description:
+      'Endpoint específico para servicio de administración para reabastecer un depósito de combustible específico',
+  })
+  @ApiBody({ type: UpdateGeneralDepositDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Se reabasteció correctamente el depósito general',
+    type: GeneralDeposit,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Depósito general no encontrado',
+  })
+  supply(@Body() updateGeneralDepositDto: UpdateGeneralDepositDto) {
+    return this.generalDepositService.update(updateGeneralDepositDto);
   }
 
   @Patch('/delete/:generalDepositId')
   @ApiOperation({
-    summary: 'Eliminar una bomba',
+    summary: 'Eliminar un depósito general',
     description:
-      'Este endpoint elimina lógicamente un depósito general específica',
+      'Este endpoint elimina lógicamente un depósito general específico',
   })
   @ApiParam({
     name: 'generalDepositId',
