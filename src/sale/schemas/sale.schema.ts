@@ -64,6 +64,10 @@ export class Sale {
 
   @Prop({ type: String, required: false })
   billNumber?: string;
+
+  @Prop({ type: String, required: false })
+  paymentServiceMessage?: string;
+
 }
 
 // Genera el esquema automáticamente y ya no se tiene que definir manualmente

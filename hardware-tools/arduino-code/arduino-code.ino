@@ -19,6 +19,7 @@ bool fueUsada          = false;
 // Times
 unsigned long releasedTimestamp = 0;
 unsigned long maxTime           = 30000;
+unsigned long currentCapacityTime = 0;
 String saleId                   = "";
 
 unsigned long initialManualTime   = 0;
@@ -44,16 +45,19 @@ void loop() {
     if (command.startsWith("RELEASED")) {
       int firstComma  = command.indexOf(',');
       int secondComma = command.indexOf(',', firstComma + 1);
+      int thirdComma  = command.indexOf(',', secondComma + 1);
 
       if (firstComma > 0 && secondComma > firstComma) {
         String tiempo = command.substring(firstComma + 1, secondComma);
-        saleId = command.substring(secondComma + 1);
 
-        if (tiempo == "NONE") {
+        if (tiempo == "NONE" && thirdComma > secondComma) {
+          saleId = command.substring(secondComma + 1, thirdComma);
+          currentCapacityTime = command.substring(thirdComma + 1).toInt();
           manualMode = true;
           maxTime = 0;
           Serial.println("Modo manual activado");
         } else {
+          saleId = command.substring(secondComma + 1);
           manualMode = false;
           maxTime = tiempo.toInt();
           Serial.print("Modo automático, maxTime: ");
@@ -80,22 +84,39 @@ void loop() {
     bool pressedButton = (digitalRead(buttonPin) == LOW);
 
     if (manualMode) {
+      unsigned long tiempoActual = millis();
       // POWER ON When is pressed
       if (pressedButton && !isPressed) {
-        isPressed = true;
-        initialManualTime = millis();
-        setEstado(3); // In use
-        Serial.println("POWER ON");
-        fueUsada = true; // The bomb was used
+        if (totalManualTime < currentCapacityTime) {
+          isPressed = true;
+          initialManualTime = tiempoActual;
+          setEstado(3); // In use
+          Serial.println("POWER ON");
+          fueUsada = true; // The bomb was used
+        }
       }
 
       // POWER OFF when released
       if (!pressedButton && isPressed) {
         isPressed = false;
-        totalManualTime += millis() - initialManualTime;
-        lastManualPressed = millis();
+        totalManualTime += tiempoActual - initialManualTime;
+        lastManualPressed = tiempoActual;
         setEstado(2); // Released
         Serial.println("POWER OFF");
+      }
+
+      // FORCE STOP if exceeded capacity
+      if (isPressed && (totalManualTime + (tiempoActual - initialManualTime)) >= currentCapacityTime) {
+        isPressed = false;
+        totalManualTime = currentCapacityTime;
+        bombReleased = false;
+        setEstado(1); // Blocked
+
+        Serial.println("TIEMPO MÁXIMO ALCANZADO EN MODO MANUAL");
+        Serial.print("TOTALTIME,");
+        Serial.print(saleId);
+        Serial.print(",");
+        Serial.println(totalManualTime);
       }
 
       // Finish when pressed the other button

@@ -66,5 +66,13 @@ export class UpdateSaleDto extends PartialType(CreateSaleDto) {
   })
   @IsNumber()
   @IsOptional()
-  totalTime?: Number;
+  totalTime?: number;
+
+  @ApiProperty({
+    description: 'Mensaje del servicio de pagos',
+    example: 'Metodo de pago no valido',
+  })
+  @IsString()
+  @IsOptional()
+  paymentServiceMessage?: string;
 }

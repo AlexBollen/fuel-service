@@ -104,9 +104,12 @@ export class SaleService {
       const duration = Math.floor(5000 * newSale.consumedQuantity);
 
       //Current quantity in the general deposit
-      await this.generalDepositService.update(deposit.generalDepositId, {
-        currentCapacity: afterQuantity,
-      });
+      await this.generalDepositService.update(
+        {
+          currentCapacity: afterQuantity,
+        },
+        deposit.generalDepositId,
+      );
 
       if (afterQuantity <= 100) {
       }
@@ -198,6 +201,9 @@ export class SaleService {
 
           const transaction = responseTransaction.data;
 
+          if (transaction.mensaje) {
+            newSale.paymentServiceMessage = transaction.mensaje;
+          }
           if (transaction.idTransaccion) {
             newSale.transactionId = transaction.idTransaccion;
           } else {
@@ -221,9 +227,16 @@ export class SaleService {
         } else {
           successful = false;
         }
-      } catch (_) {
+      } catch (error: any) {
         successful = false;
-        console.error('ERROR: ', _);
+        const errorMessage = error?.response?.data?.mensaje;
+
+        if (errorMessage) {
+          newSale.paymentServiceMessage = errorMessage;
+        } else {
+          newSale.paymentServiceMessage =
+            'Ocurrió un error desconocido al guardar la transacción';
+        }
       }
 
       if (successful) {
@@ -485,6 +498,9 @@ export class SaleService {
 
         const transaction = responseTransaction.data;
 
+        if (transaction.mensaje) {
+          updateSaleDto.paymentServiceMessage = transaction.mensaje;
+        }
         if (transaction.idTransaccion) {
           updateSaleDto.transactionId = transaction.idTransaccion;
         } else {
@@ -529,8 +545,16 @@ export class SaleService {
               successful = false;
             }
           }
-        } catch (_) {
+        } catch (error: any) {
           successful = false;
+          const errorMessage = error?.response?.data?.mensaje;
+
+          if (errorMessage) {
+            updateSaleDto.paymentServiceMessage = errorMessage;
+          } else {
+            updateSaleDto.paymentServiceMessage =
+              'Ocurrió un error desconocido al guardar la transacción';
+          }
         }
       }
     }
@@ -594,9 +618,12 @@ export class SaleService {
               );
             }
           }
-          await this.generalDepositService.update(deposit.generalDepositId, {
-            currentCapacity: afterQuantity,
-          });
+          await this.generalDepositService.update(
+            {
+              currentCapacity: afterQuantity,
+            },
+            deposit.generalDepositId,
+          );
         }
 
         const actualQuantity =
@@ -785,6 +812,9 @@ export class SaleService {
 
             const transaction = responseTransaction.data;
 
+            if (transaction.mensaje) {
+              updateSaleDto.paymentServiceMessage = transaction.mensaje;
+            }
             if (transaction.idTransaccion) {
               updateSaleDto.transactionId = transaction.idTransaccion;
             } else {
@@ -805,8 +835,16 @@ export class SaleService {
             } else {
               successful = false;
             }
-          } catch (_) {
+          } catch (error: any) {
             successful = false;
+            const errorMessage = error?.response?.data?.mensaje;
+
+            if (errorMessage) {
+              updateSaleDto.paymentServiceMessage = errorMessage;
+            } else {
+              updateSaleDto.paymentServiceMessage =
+                'Ocurrió un error desconocido al guardar la transacción';
+            }
           }
         } else if (updateSaleDto.customer.nit) {
           if (updateSaleDto.customer.nit != 'CF') {

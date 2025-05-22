@@ -92,6 +92,21 @@ export class GeneralDepositController {
     return this.generalDepositService.findByFuelType(id);
   }
 
+  @ApiOperation({
+    summary: 'Obtener El tiempo total de la capacidad actual del depósito',
+    description:
+      'Este endpoint devuelve el tiempo en milisegundos que tarda el depósito en llenar su capacidad actual',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Tiempo total de la capacidad actual del depósito',
+    type: Number,
+  })
+  @Get('currentTimeCapacity/:fuelId')
+  async getMaxTime(@Param('fuelId') fuelId: string) {
+    return this.generalDepositService.getCurrentCapacityTimeByFuelId(fuelId);
+  }
+
   @Patch('/update/:generalDepositId')
   @ApiOperation({
     summary: 'Editar un depósito general',
