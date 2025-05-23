@@ -15,7 +15,7 @@ export class GeneralDepositService {
   constructor(
     @InjectModel(GeneralDeposit.name)
     private generalDepositModel: Model<GeneralDepositDocument>,
-    private readonly alertService: AlertService
+    private readonly alertService: AlertService,
   ) {}
 
   async create(
@@ -95,19 +95,23 @@ export class GeneralDepositService {
     return `Depósito con ID ${generalDepositId} eliminado correctamente.`;
   }
 
-  async checkAndCreateAlertLow(deposit: GeneralDeposit, message:string, destination: string, createdBy: any): Promise<void> {
-  const afterQuantity = deposit.currentCapacity;
+  async checkAndCreateAlertLow(
+    deposit: GeneralDeposit,
+  ): Promise<void> {
+    const afterQuantity = deposit.currentCapacity;
 
-  if (afterQuantity <= 100) {
-    await this.alertService.create({
-      message: `Alerta: Nivel bajo de combustible "${deposit.fuel.fuelName}" en el depósito ${deposit.generalDepositId}. Cantidad actual: ${deposit.currentCapacity}`,
-      destination: 'Administracion',
-      createdBy: deposit.createdBy ? {
-        employeeId: deposit.createdBy.employeeId,
-        employeeName: deposit.createdBy.employeeName
-      }: undefined
-    });
+    if (afterQuantity <= 100) {
+      await this.alertService.create({
+        message: `Alerta: Nivel bajo de combustible "${deposit.fuel.fuelName}" en el depósito ${deposit.generalDepositId}. Cantidad actual: ${deposit.currentCapacity}`,
+        destination: 'Administración',
+        createdBy: deposit.createdBy
+          ? {
+              employeeId: deposit.createdBy.employeeId,
+              employeeName: deposit.createdBy.employeeName,
+            }
+          : undefined,
+        status: true
+      });
+    }
   }
-}
-
 }

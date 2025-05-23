@@ -103,20 +103,14 @@ export class SaleService {
       await this.generalDepositService.update(deposit.generalDepositId, {
         currentCapacity: afterQuantity,
       });
-      const updatedDeposit = await this.generalDepositService.findOne(deposit.generalDepositId);
 
+      const updatedDeposit = await this.generalDepositService.findOne(
+        deposit.generalDepositId,
+      );
 
       if (afterQuantity <= 100) {
-        await this.generalDepositService.checkAndCreateAlertLow(
-        updatedDeposit,
-        `Alerta: Nivel bajo de combustible "${newSale.fuel.fuelName}" en el depósito ${deposit.generalDepositId}. Cantidad restante: ${afterQuantity}`,
-        'Administracion',
-        {
-          employeeId: createSaleDto.createdBy.employeeId,
-          employeeName: createSaleDto.createdBy.employeeName,
-        }
-      );
-    }
+        await this.generalDepositService.checkAndCreateAlertLow(updatedDeposit);
+      }
 
       // if (newSale.paymentMethods) {
       //   await Promise.all(
@@ -230,7 +224,7 @@ export class SaleService {
         }
       } catch (_) {
         successful = false;
-        console.error("ERROR: ",_)
+        console.error('ERROR: ', _);
       }
 
       if (successful) {
@@ -601,6 +595,16 @@ export class SaleService {
           await this.generalDepositService.update(deposit.generalDepositId, {
             currentCapacity: afterQuantity,
           });
+
+          const updatedDeposit = await this.generalDepositService.findOne(
+            deposit.generalDepositId,
+          );
+
+          if (afterQuantity <= 100) {
+            await this.generalDepositService.checkAndCreateAlertLow(
+              updatedDeposit,
+            );
+          }
         }
 
         const actualQuantity =
