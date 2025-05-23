@@ -103,9 +103,20 @@ export class SaleService {
       await this.generalDepositService.update(deposit.generalDepositId, {
         currentCapacity: afterQuantity,
       });
+      const updatedDeposit = await this.generalDepositService.findOne(deposit.generalDepositId);
+
 
       if (afterQuantity <= 100) {
-      }
+        await this.generalDepositService.checkAndCreateAlertLow(
+        updatedDeposit,
+        `Alerta: Nivel bajo de combustible "${newSale.fuel.fuelName}" en el depósito ${deposit.generalDepositId}. Cantidad restante: ${afterQuantity}`,
+        'Administracion',
+        {
+          employeeId: createSaleDto.createdBy.employeeId,
+          employeeName: createSaleDto.createdBy.employeeName,
+        }
+      );
+    }
 
       // if (newSale.paymentMethods) {
       //   await Promise.all(

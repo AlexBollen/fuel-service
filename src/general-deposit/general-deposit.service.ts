@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateGeneralDepositDto } from './dto/create-general-deposit.dto';
 import { UpdateGeneralDepositDto } from './dto/update-general-deposit.dto';
+import { AlertService } from 'src/alert/alert.service';
 import {
   GeneralDeposit,
   GeneralDepositDocument,
@@ -14,6 +15,7 @@ export class GeneralDepositService {
   constructor(
     @InjectModel(GeneralDeposit.name)
     private generalDepositModel: Model<GeneralDepositDocument>,
+    private readonly alertService: AlertService
   ) {}
 
   async create(
@@ -92,4 +94,20 @@ export class GeneralDepositService {
     }
     return `Depósito con ID ${generalDepositId} eliminado correctamente.`;
   }
+
+  async checkAndCreateAlertLow(deposit: GeneralDeposit, message:string, destination: string, createdBy: any): Promise<void> {
+  const afterQuantity = deposit.currentCapacity;
+
+  if (afterQuantity <= 100) {
+    await this.alertService.create({
+      message: `Alerta: Nivel bajo de combustible "${deposit.fuel.fuelName}" en el depósito ${deposit.generalDepositId}. Cantidad actual: ${deposit.currentCapacity}`,
+      destination: 'Administracion',
+      createdBy: deposit.createdBy ? {
+        employeeId: deposit.createdBy.employeeId,
+        employeeName: deposit.createdBy.employeeName
+      }: undefined
+    });
+  }
+}
+
 }

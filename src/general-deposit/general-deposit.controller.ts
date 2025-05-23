@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
 import { GeneralDepositService } from './general-deposit.service';
 import { CreateGeneralDepositDto } from './dto/create-general-deposit.dto';
+import { CreateAlertDto } from "../alert/dto/create-alert.dto"
 import { UpdateGeneralDepositDto } from './dto/update-general-deposit.dto';
 import {
   ApiBody,
@@ -140,4 +141,5 @@ export class GeneralDepositController {
   remove(@Param('generalDepositId') id: string) {
     return this.generalDepositService.remove(id);
   }
+
 }

@@ -13,7 +13,7 @@ import { AlertModule } from 'src/alert/alert.module';
     MongooseModule.forFeature([{ name: Sale.name, schema: SaleSchema }]),
     forwardRef(() => BombModule),
     forwardRef(() => FuelTypesModule),
-    GeneralDepositModule,
+    forwardRef(() => GeneralDepositModule),
     forwardRef(() => AlertModule),
   
   ],
