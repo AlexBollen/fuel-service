@@ -7,7 +7,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Bomb, BombDocument } from './schemas/bomb.schema';
 import { BombGateway } from './bomb.gateway';
 
-
 @Injectable()
 export class BombService {
   constructor(
@@ -51,8 +50,6 @@ export class BombService {
       .exec();
   }
 
-  
-
   async remove(bombId: string): Promise<string> {
     const bomb = await this.bombModel
       .findOneAndUpdate({ bombId: bombId }, { status: 0 }, { new: true })
@@ -65,24 +62,28 @@ export class BombService {
   }
 
   // Function to update a bomb status and optionally update the servedQuantity
-  async updateStatus(bombId: string, status: number, servedQuantity?: number): Promise<Bomb> {
+  async updateStatus(
+    bombId: string,
+    status: number,
+    servedQuantity?: number,
+  ): Promise<Bomb> {
     const updateData: any = { status };
-    
+
     if (servedQuantity !== undefined) {
       updateData.servedQuantity = servedQuantity;
     }
-  
+
     const bomb = await this.bombModel.findOneAndUpdate(
       { bombId },
       updateData,
       { new: true }, // options
     );
-  
+
     if (!bomb) throw new NotFoundException('Bomba no encontrada');
-  
+
     // Emit event by websocket with the new status
     this.bombGateway.sendStatusUpdate(bombId, status);
-  
+
     return bomb;
   }
 }

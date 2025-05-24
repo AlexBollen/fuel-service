@@ -6,7 +6,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsString, IsOptional } from 'class-validator';
 
-
 export class UpdateSaleDto extends PartialType(CreateSaleDto) {
   @ApiProperty({
     description: 'Determina que tipo de venta es',
@@ -61,13 +60,20 @@ export class UpdateSaleDto extends PartialType(CreateSaleDto) {
   billNumber?: string;
 
   @ApiProperty({
-    description: 'Tiempo en milisegundos que duró la bomba despachando combustible',
+    description:
+      'Tiempo en milisegundos que duró la bomba despachando combustible',
     example: 1000,
   })
   @IsNumber()
   @IsOptional()
   totalTime?: Number;
 
-  
-}
 
+  @ApiProperty({
+    description: 'Mensaje del servicio de pagos',
+    example: 'Metodo de pago no valido',
+  })
+  @IsString()
+  @IsOptional()
+  paymentServiceMessage?: string;
+}

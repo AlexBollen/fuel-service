@@ -15,7 +15,7 @@ import { BombGateway } from './bomb.gateway';
       { name: Bomb.name, schema: BombSchema },
       { name: Sale.name, schema: SaleSchema },
     ]),
-    forwardRef(() => SaleModule),     
+    forwardRef(() => SaleModule),
   ],
   exports: [MongooseModule, BombService],
 })

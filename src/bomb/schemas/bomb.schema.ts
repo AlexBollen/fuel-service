@@ -13,7 +13,7 @@ export class Bomb {
   bombNumber: number;
 
   @Prop({ type: Number, required: true })
-  servedQuantity: number;
+  servedQuantity?: number;
 
   @Prop({ type: EmployeeEmbedded, required: true })
   employeeInCharge: EmployeeEmbedded;

@@ -17,7 +17,6 @@ import { BombEmbeddedDto } from './bomb-embedded.dto';
 import { FidelityCardEmbeddedDto } from './fidelity-card-embedded.dto';
 
 export class CreateSaleDto {
-  
   @ApiProperty({
     description: 'Determina que tipo de venta es',
     example: 1,
@@ -25,11 +24,10 @@ export class CreateSaleDto {
   @IsNumber()
   @IsIn([1, 2])
   type: number;
-  
 
   @ApiProperty({
     description: 'Total de la venta',
-    example: 150.00,
+    example: 150.0,
   })
   @IsNumber()
   @IsOptional()
@@ -91,7 +89,7 @@ export class CreateSaleDto {
     example: {
       paymentId: 'XXXXXXXX',
       methood: 'Efectivo',
-      amount: 150.00,
+      amount: 150.0,
     },
   })
   @IsArray()
@@ -138,8 +136,7 @@ export class CreateSaleDto {
   status?: number = 2;
 
   @ApiProperty({
-    description:
-      'Id de la caja',
+    description: 'Id de la caja',
     example: 'ABCD1234',
   })
   @IsNumber()

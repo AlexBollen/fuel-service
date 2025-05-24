@@ -18,6 +18,7 @@ import apiClientAdministration, {
   apiClientPayments,
 } from 'src/utils/apiClient';
 import { AlertService } from 'src/alert/alert.service';
+import { BombGateway } from 'src/bomb/bomb.gateway';
 
 @Injectable()
 export class SaleService {
@@ -27,6 +28,7 @@ export class SaleService {
     private readonly fuelTypesService: FuelTypesService,
     private readonly generalDepositService: GeneralDepositService,
     private readonly alertService: AlertService,
+    private readonly bombGateway: BombGateway,
   ) {}
 
   async create(createSaleDto: CreateSaleDto): Promise<Sale> {
@@ -98,6 +100,8 @@ export class SaleService {
         newSale.consumedQuantity,
         actualQuantityServed,
       );
+
+      const duration = Math.floor(5000 * newSale.consumedQuantity);
 
       //Current quantity in the general deposit
       const updatedDeposit = await this.generalDepositService.update(
@@ -198,6 +202,9 @@ export class SaleService {
 
           const transaction = responseTransaction.data;
 
+          if (transaction.mensaje) {
+            newSale.paymentServiceMessage = transaction.mensaje;
+          }
           if (transaction.idTransaccion) {
             newSale.transactionId = transaction.idTransaccion;
           } else {
@@ -221,9 +228,16 @@ export class SaleService {
         } else {
           successful = false;
         }
-      } catch (_) {
+      } catch (error: any) {
         successful = false;
-        console.error('ERROR: ', _);
+        const errorMessage = error?.response?.data?.mensaje;
+
+        if (errorMessage) {
+          newSale.paymentServiceMessage = errorMessage;
+        } else {
+          newSale.paymentServiceMessage =
+            'Ocurrió un error desconocido al guardar la transacción';
+        }
       }
 
       if (successful) {
@@ -233,6 +247,7 @@ export class SaleService {
         //Missing some data
         newSale.status = 2;
       }
+      newSale.totalTime = duration;
       return await newSale.save();
     } catch (error) {
       throw new InternalServerErrorException(
@@ -241,7 +256,9 @@ export class SaleService {
     }
   }
 
-  async createFullTankSale(createSaleDto: CreateSaleDto): Promise<Sale> {
+  async createFullTankSale(
+    createSaleDto: CreateSaleDto,
+  ): Promise<{ sale: Sale; maxTime: number }> {
     try {
       const newSale = new this.saleModel({
         ...createSaleDto,
@@ -250,7 +267,6 @@ export class SaleService {
 
       if (!newSale.bomb.bombNumber) {
         const bomb = await this.bombService.findOne(newSale.bomb.bombId);
-
         if (bomb) {
           newSale.bomb.bombNumber = bomb.bombNumber;
         } else {
@@ -260,7 +276,6 @@ export class SaleService {
 
       if (!newSale.fuel.fuelName || !newSale.fuel.salePriceGalon) {
         const fuel = await this.fuelTypesService.findOne(newSale.fuel.fuelId);
-
         if (fuel) {
           newSale.fuel.fuelName = fuel.fuelName;
           newSale.fuel.salePriceGalon = fuel.salePriceGalon;
@@ -274,7 +289,6 @@ export class SaleService {
           const employee = await apiClientAdministration.get(
             `/GET/empleados/${newSale.createdBy.employeeId}`,
           );
-
           if (employee.data.empleado) {
             newSale.createdBy.employeeName =
               employee.data.empleado.nombres +
@@ -284,7 +298,8 @@ export class SaleService {
         } catch (_) {}
       }
 
-      let maxTime: number;
+      // Calculate maxTime
+      let maxTime = 0;
       const generalDeposit = await this.generalDepositService.findByFuelType(
         newSale.fuel.fuelId,
       );
@@ -292,17 +307,19 @@ export class SaleService {
         maxTime = generalDeposit.currentCapacity * 5000;
       }
 
-      await this.bombService.updateStatus(newSale.bomb.bombId, 2);
-
+      // Change status of the sale to "in progress"
       newSale.status = 3;
 
-      return await newSale.save();
+      const savedSale = await newSale.save();
+      // Change status of the bomb to "in use"
+      await this.bombService.updateStatus(newSale.bomb.bombId, 2);
+
+      return { sale: savedSale, maxTime };
     } catch (error) {
       throw new InternalServerErrorException(
         `No se pudo completar la venta: ${error.message}`,
       );
     }
-    return;
   }
 
   async findAll(): Promise<Sale[]> {
@@ -482,6 +499,9 @@ export class SaleService {
 
         const transaction = responseTransaction.data;
 
+        if (transaction.mensaje) {
+          updateSaleDto.paymentServiceMessage = transaction.mensaje;
+        }
         if (transaction.idTransaccion) {
           updateSaleDto.transactionId = transaction.idTransaccion;
         } else {
@@ -526,8 +546,16 @@ export class SaleService {
               successful = false;
             }
           }
-        } catch (_) {
+        } catch (error: any) {
           successful = false;
+          const errorMessage = error?.response?.data?.mensaje;
+
+          if (errorMessage) {
+            updateSaleDto.paymentServiceMessage = errorMessage;
+          } else {
+            updateSaleDto.paymentServiceMessage =
+              'Ocurrió un error desconocido al guardar la transacción';
+          }
         }
       }
     }
@@ -591,6 +619,7 @@ export class SaleService {
               );
             }
           }
+
           const updatedDeposit = await this.generalDepositService.update(
             deposit.generalDepositId,
             {
@@ -619,6 +648,9 @@ export class SaleService {
           newStatus,
           actualQuantity,
         );
+
+        const totalTime = Number(updateSaleDto.totalTime);
+        await this.bombGateway.sendTotalTimeUpdate(sale.fuelSaleId, totalTime);
 
         return this.saleModel
           .findOneAndUpdate(
@@ -788,6 +820,9 @@ export class SaleService {
 
             const transaction = responseTransaction.data;
 
+            if (transaction.mensaje) {
+              updateSaleDto.paymentServiceMessage = transaction.mensaje;
+            }
             if (transaction.idTransaccion) {
               updateSaleDto.transactionId = transaction.idTransaccion;
             } else {
@@ -808,8 +843,16 @@ export class SaleService {
             } else {
               successful = false;
             }
-          } catch (_) {
+          } catch (error: any) {
             successful = false;
+            const errorMessage = error?.response?.data?.mensaje;
+
+            if (errorMessage) {
+              updateSaleDto.paymentServiceMessage = errorMessage;
+            } else {
+              updateSaleDto.paymentServiceMessage =
+                'Ocurrió un error desconocido al guardar la transacción';
+            }
           }
         } else if (updateSaleDto.customer.nit) {
           if (updateSaleDto.customer.nit != 'CF') {
@@ -888,6 +931,7 @@ export class SaleService {
     await this.bombService.updateStatus(bombId, 3, servedQuantityBomb);
 
     const duration = Math.floor(5000 * consumedQuantity); // Duration per galon: 5 seconds
+    console.log('Duración: ', duration);
 
     setTimeout(async () => {
       let newStatus = 0;
@@ -898,5 +942,16 @@ export class SaleService {
       }
       await this.bombService.updateStatus(bombId, newStatus);
     }, duration);
+  }
+
+  async updateTotalTime(fuelSaleId: string, totalTime: number): Promise<Sale> {
+    const sale = await this.saleModel.findOne({ fuelSaleId });
+
+    if (!sale) {
+      throw new NotFoundException('Venta no encontrada');
+    }
+
+    sale.totalTime = totalTime;
+    return sale.save();
   }
 }

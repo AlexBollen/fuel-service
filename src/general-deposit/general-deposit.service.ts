@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
@@ -60,22 +64,46 @@ export class GeneralDepositService {
   }
 
   async update(
-    generalDepositId: string,
     updateGeneralDepositDto: UpdateGeneralDepositDto,
+    generalDepositId?: string,
   ): Promise<GeneralDeposit> {
-    const updatedDeposit = await this.generalDepositModel
-      .findOneAndUpdate(
-        { generalDepositId: generalDepositId },
-        { ...updateGeneralDepositDto },
-        { new: true },
-      )
+    const updateData = { ...updateGeneralDepositDto };
+    const depositId = generalDepositId
+      ? generalDepositId
+      : updateData.idProducto;
+
+    const deposit = await this.generalDepositModel
+      .findOne({ generalDepositId: depositId })
       .exec();
 
-    if (!updatedDeposit) {
+    if (!deposit) {
       throw new NotFoundException(
         `Depósito con ID ${generalDepositId} no encontrado.`,
       );
     }
+
+    if (updateData.cantidad && updateData.idProducto) {
+      if (deposit.currentCapacity + updateData.cantidad > deposit.maxCapacity) {
+        throw new BadRequestException(
+          'La cantidad excede la capacidad máxima del depósito.',
+        );
+      } else {
+        // Si es una compra, actualizar la capacidad actual
+        updateData.currentCapacity =
+          deposit.currentCapacity + updateData.cantidad;
+
+        // Eliminar los campos temporales que no deben guardarse`
+        delete updateData.cantidad;
+        delete updateData.idProducto;
+      }
+    }
+
+    const updatedDeposit = await this.generalDepositModel
+      .findOneAndUpdate({ generalDepositId: depositId }, updateData, {
+        new: true,
+      })
+      .exec();
+
     return updatedDeposit;
   }
 
