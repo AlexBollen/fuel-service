@@ -105,10 +105,10 @@ export class SaleService {
 
       //Current quantity in the general deposit
       const updatedDeposit = await this.generalDepositService.update(
-        deposit.generalDepositId,
         {
           currentCapacity: afterQuantity,
         },
+        deposit.generalDepositId,
       );
 
       if (afterQuantity <= 100) {
@@ -621,10 +621,10 @@ export class SaleService {
           }
 
           const updatedDeposit = await this.generalDepositService.update(
-            deposit.generalDepositId,
             {
               currentCapacity: afterQuantity,
             },
+            deposit.generalDepositId,
           );
 
           if (afterQuantity <= 100) {
