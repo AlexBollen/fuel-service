@@ -9,6 +9,7 @@ import {
   GeneralDeposit,
   GeneralDepositDocument,
 } from './schemas/general-deposit.schema';
+import apiClientAdministration from 'src/utils/apiClient';
 
 @Injectable()
 export class GeneralDepositService {
@@ -99,7 +100,7 @@ export class GeneralDepositService {
     deposit: GeneralDeposit,
   ): Promise<void> {
     const afterQuantity = deposit.currentCapacity;
-
+   
     if (afterQuantity <= 100) {
       await this.alertService.create({
         message: `Alerta: Nivel bajo de combustible "${deposit.fuel.fuelName}" en el depósito ${deposit.generalDepositId}. Cantidad actual: ${deposit.currentCapacity}`,
@@ -112,6 +113,14 @@ export class GeneralDepositService {
           : undefined,
         status: true
       });
+      let successful = true;
+      try {
+         await apiClientAdministration.post('/POST/alertas/gasolinera', {
+          nombre_producto: deposit.fuel.fuelName
+        });
+      } catch (_) {
+          successful = false;
+        }
     }
   }
 }
