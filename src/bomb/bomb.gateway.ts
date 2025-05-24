@@ -39,17 +39,22 @@ export class BombGateway {
   @SubscribeMessage('releaseBomb')
   async handleReleaseBomb(
     @MessageBody()
-    payload: { bombId: string; maxTime?: number; saleId: string },
+    payload: {
+      bombId: string;
+      maxTime?: number;
+      saleId: string;
+      fuelId: string;
+    },
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    const { bombId, maxTime, saleId } = payload;
+    const { bombId, maxTime, saleId, fuelId } = payload;
     //console.log('Received releaseBomb event:', payload);
 
     try {
       await this.bombService.updateStatus(bombId, 2);
 
       // Only send maxTime if the number is valid or greater than 0
-      const eventPayload: any = { bombId, saleId };
+      const eventPayload: any = { bombId, saleId, fuelId };
       if (typeof maxTime === 'number' && maxTime > 0) {
         eventPayload.maxTime = maxTime;
       }

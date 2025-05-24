@@ -107,6 +107,21 @@ export class GeneralDepositService {
     return updatedDeposit;
   }
 
+  async getCurrentCapacityTimeByFuelId(
+    fuelId: string,
+  ): Promise<{ currentCapacityTime: number }> {
+    const deposit = await this.findByFuelType(fuelId);
+
+    const timePerGallon = 5000;
+    const maxQuantity = deposit.currentCapacity;
+    const currentCapacityTime = maxQuantity * timePerGallon;
+
+    console.log('CURRENT CAPACITY TIIME', currentCapacityTime);
+    return {
+      currentCapacityTime,
+    };
+  }
+
   async remove(generalDepositId: string): Promise<string> {
     const deposit = await this.generalDepositModel
       .findOneAndUpdate(

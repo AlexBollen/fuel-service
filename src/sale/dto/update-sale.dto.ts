@@ -66,8 +66,7 @@ export class UpdateSaleDto extends PartialType(CreateSaleDto) {
   })
   @IsNumber()
   @IsOptional()
-  totalTime?: Number;
-
+  totalTime?: number;
 
   @ApiProperty({
     description: 'Mensaje del servicio de pagos',

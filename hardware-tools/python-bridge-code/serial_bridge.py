@@ -43,10 +43,24 @@ def on_bomb_released(data):
     current_bomb["bombId"] = data.get("bombId")
     current_bomb["saleId"] = data.get("saleId")
     max_time = data.get("maxTime", None)
+    fuelId = data.get("fuelId", None)
+    
 
     if max_time is None:
+        try:
+            response = requests.get(f"{api_url}/general-deposit/currentTimeCapacity/{fuelId}")
+
+            if response.status_code == 200:
+                currentCapacityTime = response.json().get("currentCapacityTime")
+                print(f"[PY] Tiempo máximo obtenido del backend: {currentCapacityTime} ms")
+            else:
+                print(f"[ERROR] No se pudo obtener currentCapacityTime para fuelId = {fuelId}")
+                return
+        except Exception as e:
+            print(f"[ERROR] Error getting current time capacity: {e}")
+            
         print("[PY] Modo manual (sin maxTime) activado. Esperando pulsador...")
-        command = f"RELEASED,NONE,{current_bomb['saleId']}\n"
+        command = f"RELEASED,NONE,{current_bomb['saleId']},{currentCapacityTime}\n"
     else:
         print(f"[PY] Releasing bomb {current_bomb['bombId']} for {max_time} ms")
         command = f"RELEASED,{max_time},{current_bomb['saleId']}\n"
