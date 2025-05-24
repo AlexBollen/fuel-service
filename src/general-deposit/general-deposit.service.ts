@@ -96,11 +96,9 @@ export class GeneralDepositService {
     return `Depósito con ID ${generalDepositId} eliminado correctamente.`;
   }
 
-  async checkAndCreateAlertLow(
-    deposit: GeneralDeposit,
-  ): Promise<void> {
+  async checkAndCreateAlertLow(deposit: GeneralDeposit): Promise<void> {
     const afterQuantity = deposit.currentCapacity;
-   
+
     if (afterQuantity <= 100) {
       await this.alertService.create({
         message: `Alerta: Nivel bajo de combustible "${deposit.fuel.fuelName}" en el depósito ${deposit.generalDepositId}. Cantidad actual: ${deposit.currentCapacity}`,
@@ -111,16 +109,16 @@ export class GeneralDepositService {
               employeeName: deposit.createdBy.employeeName,
             }
           : undefined,
-        status: true
+        status: true,
       });
       let successful = true;
       try {
-         await apiClientAdministration.post('/POST/alertas/gasolinera', {
-          nombre_producto: deposit.fuel.fuelName
+        await apiClientAdministration.post('/POST/alertas/gasolinera', {
+          nombre_producto: deposit.fuel.fuelName,
         });
       } catch (_) {
-          successful = false;
-        }
+        successful = false;
+      }
     }
   }
 }

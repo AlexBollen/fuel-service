@@ -100,12 +100,11 @@ export class SaleService {
       );
 
       //Current quantity in the general deposit
-      await this.generalDepositService.update(deposit.generalDepositId, {
-        currentCapacity: afterQuantity,
-      });
-
-      const updatedDeposit = await this.generalDepositService.findOne(
+      const updatedDeposit = await this.generalDepositService.update(
         deposit.generalDepositId,
+        {
+          currentCapacity: afterQuantity,
+        },
       );
 
       if (afterQuantity <= 100) {
@@ -592,12 +591,11 @@ export class SaleService {
               );
             }
           }
-          await this.generalDepositService.update(deposit.generalDepositId, {
-            currentCapacity: afterQuantity,
-          });
-
-          const updatedDeposit = await this.generalDepositService.findOne(
+          const updatedDeposit = await this.generalDepositService.update(
             deposit.generalDepositId,
+            {
+              currentCapacity: afterQuantity,
+            },
           );
 
           if (afterQuantity <= 100) {
