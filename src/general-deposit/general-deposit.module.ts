@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { GeneralDepositService } from './general-deposit.service';
 import { GeneralDepositController } from './general-deposit.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -7,7 +7,7 @@ import {
   GeneralDepositSchema,
 } from './schemas/general-deposit.schema';
 import { Sale, SaleSchema } from 'src/sale/schemas/sale.schema';
-
+import { AlertModule } from 'src/alert/alert.module';
 
 @Module({
   controllers: [GeneralDepositController],
@@ -18,6 +18,7 @@ import { Sale, SaleSchema } from 'src/sale/schemas/sale.schema';
       { name: Sale.name, schema: SaleSchema },
       
     ]),
+    forwardRef(() => AlertModule),
   ],
   exports: [MongooseModule, GeneralDepositService],
 })

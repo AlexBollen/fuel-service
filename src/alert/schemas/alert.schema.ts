@@ -15,10 +15,10 @@ export class Alert {
   @Prop({ type: String, required: true })
   destination: string;
 
-  @Prop({ type: EmployeeEmbedded, required: true })
+  @Prop({ type: EmployeeEmbedded, required: false })
   createdBy: EmployeeEmbedded;
 
-  @Prop({ type: Number, required: true })
+  @Prop({ type: Number, required: false })
   status: number;
 }
 

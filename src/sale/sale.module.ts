@@ -14,7 +14,7 @@ import { BombGateway } from 'src/bomb/bomb.gateway';
     MongooseModule.forFeature([{ name: Sale.name, schema: SaleSchema }]),
     forwardRef(() => BombModule),
     forwardRef(() => FuelTypesModule),
-    GeneralDepositModule,
+    forwardRef(() => GeneralDepositModule),
     forwardRef(() => AlertModule),
   ],
   controllers: [SaleController],

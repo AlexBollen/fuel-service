@@ -31,9 +31,10 @@ export class CreateAlertDto {
       employeeName: 'María Rojas',
     },
   })
+  @IsOptional()
   @ValidateNested()
   @Type(() => EmployeeEmbeddedDto)
-  createdBy: EmployeeEmbeddedDto;
+  createdBy?: EmployeeEmbeddedDto;
 
   @ApiProperty({ description: 'Estado de la alerta', example: true })
   @IsBoolean()

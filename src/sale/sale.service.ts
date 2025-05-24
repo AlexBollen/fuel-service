@@ -104,14 +104,15 @@ export class SaleService {
       const duration = Math.floor(5000 * newSale.consumedQuantity);
 
       //Current quantity in the general deposit
-      await this.generalDepositService.update(
+      const updatedDeposit = await this.generalDepositService.update(
+        deposit.generalDepositId,
         {
           currentCapacity: afterQuantity,
         },
-        deposit.generalDepositId,
       );
 
       if (afterQuantity <= 100) {
+        await this.generalDepositService.checkAndCreateAlertLow(updatedDeposit);
       }
 
       // if (newSale.paymentMethods) {
@@ -618,12 +619,19 @@ export class SaleService {
               );
             }
           }
-          await this.generalDepositService.update(
+
+          const updatedDeposit = await this.generalDepositService.update(
+            deposit.generalDepositId,
             {
               currentCapacity: afterQuantity,
             },
-            deposit.generalDepositId,
           );
+
+          if (afterQuantity <= 100) {
+            await this.generalDepositService.checkAndCreateAlertLow(
+              updatedDeposit,
+            );
+          }
         }
 
         const actualQuantity =
