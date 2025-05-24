@@ -17,7 +17,6 @@ import { GeneralDepositService } from 'src/general-deposit/general-deposit.servi
 import apiClientAdministration, {
   apiClientPayments,
 } from 'src/utils/apiClient';
-import { AlertService } from 'src/alert/alert.service';
 import { BombGateway } from 'src/bomb/bomb.gateway';
 
 @Injectable()
@@ -27,7 +26,6 @@ export class SaleService {
     private readonly bombService: BombService,
     private readonly fuelTypesService: FuelTypesService,
     private readonly generalDepositService: GeneralDepositService,
-    private readonly alertService: AlertService,
     private readonly bombGateway: BombGateway,
   ) {}
 
@@ -114,25 +112,6 @@ export class SaleService {
       if (afterQuantity <= 100) {
         await this.generalDepositService.checkAndCreateAlertLow(updatedDeposit);
       }
-
-      // if (newSale.paymentMethods) {
-      //   await Promise.all(
-      //     newSale.paymentMethods.map(async (methodItem) => {
-      //       try {
-      //         const response = await apiClientPayments.get(
-      //           `metodos/obtener/${methodItem.paymentId}`,
-      //         );
-      //         if (response.data.metodo) {
-      //           methodItem.method = response.data.metodo;
-      //         } else {
-      //           successful = false;
-      //         }
-      //       } catch (_) {
-      //         successful = false;
-      //       }
-      //     }),
-      //   );
-      // }
 
       if (!newSale.customer.nit) {
         newSale.customer.customerName = 'CF';
@@ -429,27 +408,6 @@ export class SaleService {
         }
       }
     }
-
-    // if (updateSaleDto.paymentMethods) {
-    //   if (updateSaleDto.paymentMethods) {
-    //     await Promise.all(
-    //       updateSaleDto.paymentMethods.map(async (methodItem) => {
-    //         try {
-    //           const response = await apiClientPayments.get(
-    //             `/metodos/obtener/${methodItem.paymentId}`,
-    //           );
-    //           if (response.data.metodo) {
-    //             methodItem.method = response.data.metodo;
-    //           } else {
-    //             successful = false;
-    //           }
-    //         } catch (_) {
-    //           successful = false;
-    //         }
-    //       }),
-    //     );
-    //   }
-    // }
 
     if (!sale.billNumber && updateSaleDto.paymentMethods) {
       try {
@@ -750,27 +708,6 @@ export class SaleService {
             }
           }
         }
-
-        // if (updateSaleDto.paymentMethods) {
-        //   if (updateSaleDto.paymentMethods) {
-        //     await Promise.all(
-        //       updateSaleDto.paymentMethods.map(async (methodItem) => {
-        //         try {
-        //           const response = await apiClientPayments.get(
-        //             `/metodos/obtener/${methodItem.paymentId}`,
-        //           );
-        //           if (response.data.metodo) {
-        //             methodItem.method = response.data.metodo;
-        //           } else {
-        //             successful = false;
-        //           }
-        //         } catch (_) {
-        //           successful = false;
-        //         }
-        //       }),
-        //     );
-        //   }
-        // }
 
         if (!sale.billNumber && updateSaleDto.paymentMethods) {
           try {

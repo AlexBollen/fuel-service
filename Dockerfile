@@ -1,23 +1,16 @@
-# Usa una imágen base de Node.js
-FROM node:23.11-alpine3.21
+FROM node:23.11-alpine3.21 AS builder
 
-# Establecemos el directorio de trabajo dentro del contenedor
-WORKDIR /
-
-# Copia el archivo package.json y yarn.lock al contenedor
+WORKDIR /app
 COPY package*.json yarn.lock ./
-
-# Instala yarn globalmente en el contenedor si no esta instalado
-RUN if ! command -v yarn > /dev/null; then npm install -g yarn; fi
-
-# Instalamos las dependencias de la app
 RUN yarn install
-
-# Copia el resto del código de la app
 COPY . .
-
-# Contruye la app
 RUN yarn build
 
-# Comando para ejecutar la app
+FROM node:23.11-alpine3.21 AS production
+
+WORKDIR /app
+COPY package*.json yarn.lock ./
+RUN yarn install --production
+COPY --from=builder /app/dist ./dist
+EXPOSE 3002
 CMD ["node", "dist/main.js"]
