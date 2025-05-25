@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
 import { GeneralDepositService } from './general-deposit.service';
 import { CreateGeneralDepositDto } from './dto/create-general-deposit.dto';
-import { CreateAlertDto } from "../alert/dto/create-alert.dto"
+import { CreateAlertDto } from '../alert/dto/create-alert.dto';
 import { UpdateGeneralDepositDto } from './dto/update-general-deposit.dto';
 import {
   ApiBody,
@@ -93,18 +93,34 @@ export class GeneralDepositController {
     return this.generalDepositService.findByFuelType(id);
   }
 
+  @Get('/currentTimeCapacity/:fuelId')
   @ApiOperation({
-    summary: 'Obtener El tiempo total de la capacidad actual del depósito',
+    summary:
+      'Obtener tiempo estimado de capacidad actual por tipo de combustible',
     description:
-      'Este endpoint devuelve el tiempo en milisegundos que tarda el depósito en llenar su capacidad actual',
+      'Este endpoint calcula y retorna el tiempo de capacidad actual para un tipo de combustible específico',
+  })
+  @ApiParam({
+    name: 'fuelId',
+    description: 'ID del tipo de combustible',
   })
   @ApiResponse({
     status: 200,
-    description: 'Tiempo total de la capacidad actual del depósito',
-    type: Number,
+    description: 'Tiempo estimado calculado correctamente',
+    schema: {
+      example: {
+        currentCapacityTime: 150000,
+      },
+    },
   })
-  @Get('currentTimeCapacity/:fuelId')
-  async getMaxTime(@Param('fuelId') fuelId: string) {
+  @ApiResponse({
+    status: 404,
+    description:
+      'No se encontró el depósito para el tipo de combustible proporcionado',
+  })
+  async getCurrentCapacityTimeByFuelId(
+    @Param('fuelId') fuelId: string,
+  ): Promise<{ currentCapacityTime: number }> {
     return this.generalDepositService.getCurrentCapacityTimeByFuelId(fuelId);
   }
 
@@ -176,5 +192,4 @@ export class GeneralDepositController {
   remove(@Param('generalDepositId') id: string) {
     return this.generalDepositService.remove(id);
   }
-
 }
