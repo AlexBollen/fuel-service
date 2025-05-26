@@ -3,6 +3,7 @@
 // Leds and button
 const int bomb1PinInUse     = 2;
 const int bomb1PinReleased  = 3;
+const int bomb1PinInMaintenance  = 4;
 const int buttonPin         = 7;
 const int finishButtonPin   = 8;
 
@@ -21,6 +22,7 @@ unsigned long releasedTimestamp = 0;
 unsigned long maxTime           = 30000;
 unsigned long currentCapacityTime = 0;
 String saleId                   = "";
+String bombId                   = "";
 
 unsigned long initialManualTime   = 0;
 unsigned long totalManualTime     = 0;
@@ -41,6 +43,20 @@ void loop() {
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');
     command.trim();
+
+    if (command.startsWith("RESET")) {
+      int firstCommaB  = command.indexOf(',');
+      bombId = command.substring(firstCommaB + 1);
+      Serial.println("RESET");
+      setEstado(5); // Reset
+    }
+
+    if (command.startsWith("IN MAINTENANCE")) {
+      int firstCommaB  = command.indexOf(',');
+      bombId = command.substring(firstCommaB + 1);
+      Serial.println("BOMBA EN MANTENIMIENTO");
+      setEstado(4); // In maintenance
+    }
 
     if (command.startsWith("RELEASED")) {
       int firstComma  = command.indexOf(',');
@@ -178,5 +194,13 @@ void setEstado(int nuevoEstado) {
       digitalWrite(bomb1PinReleased, HIGH);
       Serial.println("POWER ON");
       break;
+    case 4: // In Maintenance
+      digitalWrite(bomb1PinInMaintenance,    HIGH);
+      Serial.println("IN MAINTENANCE");
+      break;
+    case 5: // Reset After Maintenance
+      digitalWrite(bomb1PinInMaintenance,    LOW);
+      Serial.println("RESET");
+      break; 
   }
 }

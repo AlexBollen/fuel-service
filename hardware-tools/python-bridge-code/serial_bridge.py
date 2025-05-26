@@ -73,6 +73,7 @@ def update_bomb_status(bombId, HW_Status):
     
     url = f"{api_url}/bomb/{bombId}/status"
     status_map = {
+        "IN MAINTENANCE": 4,  # Bomb in maintenance
         "POWER ON": 3,  # Bomb in use
         "POWER OFF": 2,  # Released but not in use
         "BLOCKED": 1,
@@ -122,6 +123,32 @@ def send_total_time(sale_id, total_time):
         print(f"[ERROR] Sending total time: {e}")
 
 
+# WebSocket event for bomb in maintenance
+@sio.on("bombInMaintenance")
+def on_bomb_in_maintenance(data):
+    bomb_id = data.get("bombId")
+    print(f"[WS] Bomba en mantenimiento recibida para: {bomb_id}")
+
+    current_bomb["bombId"] = bomb_id
+
+    # Enviar mensaje al Arduino
+    maintenance_command = f"IN MAINTENANCE,{bomb_id}\n"
+    ser.write(maintenance_command.encode())
+    print(f"[SERIAL] Enviado a Arduino: {maintenance_command.strip()}")
+
+
+# WebSocket event for bomb reset after maintenance
+@sio.on("resetBomb")
+def on_reset_bomb(data):
+    bomb_id = data.get("bombId")
+    print(f"[WS] Reiniciando estado de la bomba: {bomb_id}")
+
+    current_bomb["bombId"] = bomb_id
+
+    # Send reset command to Arduino
+    reset_command = f"RESET,{bomb_id}\n"
+    ser.write(reset_command.encode())
+    print(f"[SERIAL] Enviado a Arduino: {reset_command.strip()}")
 
 
 def read_arduino():
@@ -132,7 +159,13 @@ def read_arduino():
                 print(f"Arduino data: {arduino_data}")
 
                 bomb_id_local = current_bomb.get("bombId")
-                if "POWER ON" in arduino_data.upper():
+                if "RESET" in arduino_data.upper():
+                    update_bomb_status(bomb_id_local, "BLOCKED")
+                    emit_bomb_status(1)  # Bomb blocked
+                elif "IN MAINTENANCE" in arduino_data.upper():
+                    update_bomb_status(bomb_id_local, "IN MAINTENANCE")
+                    emit_bomb_status(4)  # Bomb in maintenance
+                elif "POWER ON" in arduino_data.upper():
                     update_bomb_status(bomb_id_local, "POWER ON")
                     emit_bomb_status(3)  # Bomb in use
 
