@@ -44,6 +44,11 @@ export class SaleService {
         const bomb = await this.bombService.findOne(newSale.bomb.bombId);
 
         if (bomb) {
+          if (bomb.status === 4) {
+            throw new BadRequestException(
+              'La bomba seleccionada está fuera de servicio',
+            );
+          }
           newSale.bomb.bombNumber = bomb.bombNumber;
           servedQuantityBomb = bomb.servedQuantity;
         } else {
@@ -247,6 +252,11 @@ export class SaleService {
       if (!newSale.bomb.bombNumber) {
         const bomb = await this.bombService.findOne(newSale.bomb.bombId);
         if (bomb) {
+          if (bomb.status === 4) {
+            throw new BadRequestException(
+              'La bomba seleccionada está fuera de servicio',
+            );
+          }
           newSale.bomb.bombNumber = bomb.bombNumber;
         } else {
           throw new NotFoundException('Bomba no encontrada');
@@ -555,6 +565,11 @@ export class SaleService {
           const bomb = await this.bombService.findOne(sale.bomb.bombId);
 
           if (bomb) {
+            if (bomb.status === 4) {
+              throw new BadRequestException(
+                'La bomba seleccionada está fuera de servicio',
+              );
+            }
             sale.bomb.bombNumber = bomb.bombNumber;
             servedQuantityBomb = bomb.servedQuantity;
           } else {
@@ -864,6 +879,12 @@ export class SaleService {
   ) {
     const bomb = await this.bombService.findOne(bombId);
     if (!bomb) throw new NotFoundException('Bomba no encontrada');
+
+    if (bomb.status === 4) {
+      throw new BadRequestException(
+        'La bomba seleccionada está fuera de servicio',
+      );
+    }
 
     await this.bombService.updateStatus(bombId, 3, servedQuantityBomb);
 
