@@ -5,7 +5,6 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException,
 } from '@nestjs/websockets';
 import { Socket } from 'dgram';
 import { Server } from 'socket.io';
@@ -76,5 +75,63 @@ export class BombGateway {
   sendTotalTimeUpdate(saleId: string, totalTime: number) {
     this.server.emit('totalTimeUpdated', { saleId, totalTime });
     //console.log('totalTimeUpdated emitido:', { saleId, totalTime });
+  }
+
+  //Receive message from the frotend to set the bomb to maintenance
+  @SubscribeMessage('setBombToMaintenance')
+  async handleMaintenance(
+    @MessageBody() payload: { bombId: string },
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const { bombId } = payload;
+
+    try {
+      // Change bomb status to 4 (IN MAINTENANCE)
+      await this.bombService.updateStatus(bombId, 4);
+
+      // Emit WebSocket event to notify to the frontend
+      this.server.emit('bombStatusUpdated', {
+        bombId,
+        status: 4,
+      });
+
+      // Send event to python
+      this.server.emit('bombInMaintenance', {
+        bombId,
+      });
+
+      console.log(`[WS] Bomba ${bombId} puesta en mantenimiento.`);
+    } catch (error) {
+      console.error('Error al poner bomba en mantenimiento:', error.message);
+    }
+  }
+
+  //Receive message from the frotend to reset the bomb
+  @SubscribeMessage('setResetBombToBlocked')
+  async handleReset(
+    @MessageBody() payload: { bombId: string },
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const { bombId } = payload;
+
+    try {
+      // Change bomb status to 4 (IN MAINTENANCE)
+      await this.bombService.updateStatus(bombId, 1);
+
+      // Emit WebSocket event to notify to the frontend
+      this.server.emit('bombStatusUpdated', {
+        bombId,
+        status: 1,
+      });
+
+      // Send event to python
+      this.server.emit('resetBomb', {
+        bombId,
+      });
+
+      console.log(`[WS] Bomba ${bombId} reseteada, puesta en bloqueada.`);
+    } catch (error) {
+      console.error('Error al resetear bomba:', error.message);
+    }
   }
 }
