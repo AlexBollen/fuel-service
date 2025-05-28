@@ -4,7 +4,7 @@ import { Types } from 'mongoose';
 @Schema({ _id: false })
 export class PaymentMethodEmbedded {
   @Prop({ type: String, required: true })
-  paymentId: string;
+  paymentId: number;
 
   @Prop({ type: String, required: false })
   method?: string;
