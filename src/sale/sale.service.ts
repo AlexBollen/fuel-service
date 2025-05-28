@@ -145,7 +145,7 @@ export class SaleService {
         IdMetodo: pm.paymentId,
         Monto: pm.amount,
         ...(pm.bankId && { IdBanco: pm.bankId }),
-        ...(pm.cardNumber && { Notarjeta: pm.cardNumber }),
+        ...(pm.cardNumber && { NoTarjeta: pm.cardNumber }),
       }));
 
       try {
@@ -220,7 +220,7 @@ export class SaleService {
           newSale.paymentServiceMessage = errorMessage;
         } else {
           newSale.paymentServiceMessage =
-            'Ocurrió un error desconocido al guardar la transacción';
+           'Ocurrió un error desconocido al guardar la transacción: ', error.message;
         }
       }
 
@@ -429,11 +429,11 @@ export class SaleService {
         }));
 
         const responseTransaction = await apiClientPayments.post(
-          `/transaccion/crear/`,
+          `transacciones/crear/`,
           {
             Nit: updateSaleDto.customer.nit,
             IdCaja: updateSaleDto.cashRegisterId,
-            IdServicioTransaccion: 3002,
+            IdServicioTransaccion: 4,
             Detalle: [
               {
                 Producto: sale.fuel.fuelName,
@@ -497,7 +497,7 @@ export class SaleService {
       if (updateSaleDto.customer.nit != 'CF') {
         try {
           const response = await apiClientPayments.get(
-            `/cliente/obtener/${updateSaleDto.customer.nit}`,
+            `cliente/obtener/${updateSaleDto.customer.nit}`,
           );
 
           if (response.data.factura.cliente) {
@@ -522,7 +522,7 @@ export class SaleService {
             updateSaleDto.paymentServiceMessage = errorMessage;
           } else {
             updateSaleDto.paymentServiceMessage =
-              'Ocurrió un error desconocido al guardar la transacción';
+             'Ocurrió un error desconocido al guardar la transacción: ', error.message;
           }
         }
       }
@@ -725,20 +725,19 @@ export class SaleService {
         }
 
         if (!sale.billNumber && updateSaleDto.paymentMethods) {
+          const metodosPago = updateSaleDto.paymentMethods.map((pm) => ({
+            IdMetodo: pm.paymentId,
+            Monto: pm.amount,
+            ...(pm.bankId && { IdBanco: pm.bankId }),
+            ...(pm.cardNumber && { NoTarjeta: pm.cardNumber }),
+          }));
           try {
-            const metodosPago = updateSaleDto.paymentMethods.map((pm) => ({
-              IdMetodo: pm.paymentId,
-              Monto: pm.amount,
-              ...(pm.bankId && { IdBanco: pm.bankId }),
-              ...(pm.cardNumber && { Notarjeta: pm.cardNumber }),
-            }));
-
             const responseTransaction = await apiClientPayments.post(
-              `/transaccion/crear/`,
+              `transacciones/crear/`,
               {
                 Nit: updateSaleDto.customer.nit,
                 IdCaja: updateSaleDto.cashRegisterId,
-                IdServicioTransaccion: 3002,
+                IdServicioTransaccion: 4,
                 Detalle: [
                   {
                     Producto: sale.fuel.fuelName,
@@ -799,18 +798,19 @@ export class SaleService {
             successful = false;
             const errorMessage = error?.response?.data?.mensaje;
 
+            
             if (errorMessage) {
               updateSaleDto.paymentServiceMessage = errorMessage;
             } else {
               updateSaleDto.paymentServiceMessage =
-                'Ocurrió un error desconocido al guardar la transacción';
+                'Ocurrió un error desconocido al guardar la transacción: ', error.message;
             }
           }
         } else if (updateSaleDto.customer.nit) {
           if (updateSaleDto.customer.nit != 'CF') {
             try {
               const response = await apiClientPayments.get(
-                `/cliente/obtener/${updateSaleDto.customer.nit}`,
+                `cliente/obtener/${updateSaleDto.customer.nit}`,
               );
 
               if (response.data.factura.cliente) {
@@ -857,9 +857,7 @@ export class SaleService {
 
     if (sale.billNumber) {
       try {
-        await apiClientPayments.delete(
-          `/transaccion/anular/${sale.billNumber}`,
-        );
+        await apiClientPayments.delete(`transaccion/anular/${sale.billNumber}`);
       } catch (error) {
         throw new InternalServerErrorException(
           `No se pudo eliminar la factura y la venta ${error.message}`,
