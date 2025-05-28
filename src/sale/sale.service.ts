@@ -219,8 +219,9 @@ export class SaleService {
         if (errorMessage) {
           newSale.paymentServiceMessage = errorMessage;
         } else {
-          newSale.paymentServiceMessage =
-           'Ocurrió un error desconocido al guardar la transacción: ', error.message;
+          (newSale.paymentServiceMessage =
+            'Ocurrió un error desconocido al guardar la transacción: '),
+            error.message;
         }
       }
 
@@ -425,7 +426,7 @@ export class SaleService {
           IdMetodo: pm.paymentId,
           Monto: pm.amount,
           ...(pm.bankId && { IdBanco: pm.bankId }),
-          ...(pm.cardNumber && { Notarjeta: pm.cardNumber }),
+          ...(pm.cardNumber && { NoTarjeta: pm.cardNumber }),
         }));
 
         const responseTransaction = await apiClientPayments.post(
@@ -490,8 +491,17 @@ export class SaleService {
         } else {
           successful = false;
         }
-      } catch (_) {
+      } catch (error: any) {
         successful = false;
+        const errorMessage = error?.response?.data?.mensaje;
+        console.log('Error:', error);
+        if (errorMessage) {
+          updateSaleDto.paymentServiceMessage = errorMessage;
+        } else {
+          (updateSaleDto.paymentServiceMessage =
+            'Ocurrió un error desconocido al guardar la transacción: '),
+            error.message;
+        }
       }
     } else if (updateSaleDto.customer.nit) {
       if (updateSaleDto.customer.nit != 'CF') {
@@ -516,14 +526,6 @@ export class SaleService {
           }
         } catch (error: any) {
           successful = false;
-          const errorMessage = error?.response?.data?.mensaje;
-
-          if (errorMessage) {
-            updateSaleDto.paymentServiceMessage = errorMessage;
-          } else {
-            updateSaleDto.paymentServiceMessage =
-             'Ocurrió un error desconocido al guardar la transacción: ', error.message;
-          }
         }
       }
     }
@@ -798,12 +800,12 @@ export class SaleService {
             successful = false;
             const errorMessage = error?.response?.data?.mensaje;
 
-            
             if (errorMessage) {
               updateSaleDto.paymentServiceMessage = errorMessage;
             } else {
-              updateSaleDto.paymentServiceMessage =
-                'Ocurrió un error desconocido al guardar la transacción: ', error.message;
+              (updateSaleDto.paymentServiceMessage =
+                'Ocurrió un error desconocido al guardar la transacción: '),
+                error.message;
             }
           }
         } else if (updateSaleDto.customer.nit) {
