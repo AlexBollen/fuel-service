@@ -58,7 +58,7 @@ export class BombController {
     type: [Bomb],
   })
   async listActiveBombs(): Promise<Bomb[]> {
-    return this.bombService.findByStatus(1);
+    return this.bombService.findByStatus(3);
   }
 
   @Get('/list/inactive')
@@ -72,7 +72,7 @@ export class BombController {
     type: [Bomb],
   })
   async listInactiveBombs(): Promise<Bomb[]> {
-    return this.bombService.findByStatus(0);
+    return this.bombService.findByStatus(2);
   }
 
   @Get('/list/mainteance')
@@ -87,7 +87,7 @@ export class BombController {
     type: [Bomb],
   })
   async listMainteanceBombs(): Promise<Bomb[]> {
-    return this.bombService.findByStatus(2);
+    return this.bombService.findByStatus(4);
   }
 
   @Get('/list/:bombId')
