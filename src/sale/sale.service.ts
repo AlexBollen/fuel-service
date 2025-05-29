@@ -133,11 +133,8 @@ export class SaleService {
               employee.data.empleado.nombres +
               ' ' +
               employee.data.empleado.apellidos;
-          } else {
-            successful = false;
-          }
+          } 
         } catch (error) {
-          successful = false;
         }
       }
 
@@ -355,11 +352,9 @@ export class SaleService {
             const fullName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
             updateSaleDto.updatedBy.employeeName = fullName;
             updateSaleDto.createdBy.employeeName = fullName;
-          } else {
-            successful = false;
-          }
+          } 
         } catch (_) {
-          successful = false;
+         
         }
       } else {
         try {
@@ -368,11 +363,9 @@ export class SaleService {
           );
           if (employee.data.empleado) {
             updateSaleDto.updatedBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
-          } else {
-            successful = false;
-          }
+          } 
         } catch (_) {
-          successful = false;
+         
         }
 
         try {
@@ -381,11 +374,9 @@ export class SaleService {
           );
           if (employee.data.empleado) {
             updateSaleDto.createdBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
-          } else {
-            successful = false;
-          }
+          } 
         } catch (_) {
-          successful = false;
+         
         }
       }
     } else {
@@ -396,11 +387,9 @@ export class SaleService {
           );
           if (employee.data.empleado) {
             updateSaleDto.updatedBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
-          } else {
-            successful = false;
-          }
+          } 
         } catch (_) {
-          successful = false;
+          
         }
       }
 
@@ -411,11 +400,9 @@ export class SaleService {
           );
           if (employee.data.empleado) {
             updateSaleDto.createdBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
-          } else {
-            successful = false;
-          }
+          } 
         } catch (_) {
-          successful = false;
+         
         }
       }
     }
@@ -661,11 +648,9 @@ export class SaleService {
                 const fullName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
                 updateSaleDto.updatedBy.employeeName = fullName;
                 updateSaleDto.createdBy.employeeName = fullName;
-              } else {
-                successful = false;
-              }
+              } 
             } catch (_) {
-              successful = false;
+              
             }
           } else {
             try {
@@ -674,11 +659,9 @@ export class SaleService {
               );
               if (employee.data.empleado) {
                 updateSaleDto.updatedBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
-              } else {
-                successful = false;
-              }
+              } 
             } catch (_) {
-              successful = false;
+              
             }
 
             try {
@@ -687,11 +670,9 @@ export class SaleService {
               );
               if (employee.data.empleado) {
                 updateSaleDto.createdBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
-              } else {
-                successful = false;
-              }
+              } 
             } catch (_) {
-              successful = false;
+              
             }
           }
         } else {
@@ -702,11 +683,9 @@ export class SaleService {
               );
               if (employee.data.empleado) {
                 updateSaleDto.updatedBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
-              } else {
-                successful = false;
-              }
+              } 
             } catch (_) {
-              successful = false;
+              
             }
           }
 
@@ -717,11 +696,9 @@ export class SaleService {
               );
               if (employee.data.empleado) {
                 updateSaleDto.createdBy.employeeName = `${employee.data.empleado.nombres} ${employee.data.empleado.apellidos}`;
-              } else {
-                successful = false;
-              }
+              } 
             } catch (_) {
-              successful = false;
+             
             }
           }
         }

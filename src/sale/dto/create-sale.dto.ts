@@ -18,7 +18,7 @@ import { FidelityCardEmbeddedDto } from './fidelity-card-embedded.dto';
 
 export class CreateSaleDto {
   @ApiProperty({
-    description: 'Determina que tipo de venta es',
+    description: 'Determina que tipo de venta es, \n1= venta normal \b2=venta de tanque completo',
     example: 1,
   })
   @IsNumber()
@@ -124,7 +124,8 @@ export class CreateSaleDto {
   })
   @ValidateNested()
   @Type(() => EmployeeEmbeddedDto)
-  createdBy: EmployeeEmbeddedDto;
+  @IsOptional()
+  createdBy?: EmployeeEmbeddedDto;
 
   @ApiProperty({
     description:
