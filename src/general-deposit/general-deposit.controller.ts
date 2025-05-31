@@ -13,7 +13,7 @@ import {
 import { GeneralDeposit } from './schemas/general-deposit.schema';
 
 @ApiTags('General Deposits')
-@Controller('general-deposit')
+@Controller('generalDeposit')
 export class GeneralDepositController {
   constructor(private readonly generalDepositService: GeneralDepositService) {}
 
