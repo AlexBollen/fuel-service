@@ -23,7 +23,8 @@ export class BombService {
   }
 
   async findAll(): Promise<Bomb[]> {
-    return await this.bombModel.find().exec();
+    return await this.bombModel.find({ status: { $ne: 0 } }).exec();
+
   }
 
   async findOne(bombId: string): Promise<Bomb> {
