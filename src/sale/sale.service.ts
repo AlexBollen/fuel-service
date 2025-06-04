@@ -310,7 +310,10 @@ export class SaleService {
   }
 
   async findAll(): Promise<Sale[]> {
-    return await this.saleModel.find({ status: { $in: [1, 2, 3, 4] } }).exec();
+    return await this.saleModel
+      .find({ status: { $in: [1, 2, 3, 4] } })
+      .sort({ createdAt: -1 }) 
+      .exec();
   }
 
   async findOne(saleId: string) {

@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 
 @Schema({ _id: false })
 export class PaymentMethodEmbedded {
-  @Prop({ type: String, required: true })
+  @Prop({ type: Number, required: true })
   paymentId: number;
 
   @Prop({ type: String, required: false })
