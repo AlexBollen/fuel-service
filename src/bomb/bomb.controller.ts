@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Patch, NotFoundException } from '@nestjs/common';
 import { BombService } from './bomb.service';
 import { CreateBombDto } from './dto/create-bomb.dto';
 import { UpdateBombDto } from './dto/update-bomb.dto';
@@ -88,6 +88,29 @@ export class BombController {
   })
   async listMainteanceBombs(): Promise<Bomb[]> {
     return this.bombService.findByStatus(4);
+  }
+
+  @Get('/list/employee/:employeeId')
+  @ApiOperation({
+    summary: 'Obtener la bomba más reciente por usuario encargado',
+    description:
+      'Obtener la bomba más reciente que se encuentra a cargo de un empleado',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Bomba encontrada',
+    type: Bomb,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No se encontró ninguna bomba para este empleado',
+  })
+  async findByEmployee(@Param('employeeId') employeeId: string): Promise<Bomb> {
+    const bomb = await this.bombService.findByEmployee(employeeId);
+    if (!bomb) {
+      throw new NotFoundException('No se encontró ninguna bomba para este empleado');
+    }
+    return bomb;
   }
 
   @Get('/list/:bombId')
