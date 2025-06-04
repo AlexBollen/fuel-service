@@ -39,6 +39,15 @@ export class BombService {
     return await this.bombModel.find({ status }).exec();
   }
 
+  async findByEmployee(employeeId: string): Promise<Bomb | null> {
+    return await this.bombModel.findOne({ 
+      'employeeInCharge.employeeId': employeeId, 
+      status: { $ne: 0 } 
+    })
+    .sort({ createdAt: -1 })
+    .exec();
+  }
+
   async update(bombId: string, updateBombDto: UpdateBombDto): Promise<Bomb> {
     const bomb = await this.bombModel.findOne({ bombId }).exec();
 
